@@ -10,40 +10,22 @@ try:
 except ImportError:
     pass
 
-try:
-    import highway_env
-except ImportError:
-    pass
-else:
-    # hotfix for highway_env
-    import numpy as np
-
-    np.float = np.float32  # type: ignore[attr-defined]
 
 try:
-    import custom_envs
+    from env.antennaEnv import AntennaPlacementEnv
 except ImportError:
-    pass
+    AntennaPlacementEnv = None
+    print("Custom Antenna Environment failed to import")
 
-try:
-    import gym_donkeycar
-except ImportError:
-    pass
-
-try:
-    import panda_gym
-except ImportError:
-    pass
-
-try:
-    import rocket_lander_gym
-except ImportError:
-    pass
-
-try:
-    import minigrid
-except ImportError:
-    pass
+register(
+    # unique identifier for the env `name-version`
+    id="antenna4x4-v1",
+    # path to the class for creating the env
+    # Note: entry_point also accept a class as input (and not only a string)
+    entry_point=AntennaPlacementEnv,
+    # Max number of steps per episode, using a `TimeLimitWrapper`
+    max_episode_steps=500,
+    )
 
 
 # Register no vel envs
@@ -56,9 +38,12 @@ def create_no_vel_env(env_id: str) -> Callable[[Optional[str]], gym.Env]:
     return make_env
 
 
+
 for env_id in MaskVelocityWrapper.velocity_indices.keys():
     name, version = env_id.split("-v")
     register(
         id=f"{name}NoVel-v{version}",
         entry_point=create_no_vel_env(env_id),  # type: ignore[arg-type]
     )
+    
+
