@@ -16,11 +16,13 @@ import rl_zoo3.import_envs  # noqa: F401
 from rl_zoo3.exp_manager import ExperimentManager
 from rl_zoo3.utils import ALGOS, StoreDict
 
+from gymnasium.envs.registration import register
+from env.antennaEnv import AntennaPlacementEnv
 
 def train() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--algo", help="RL Algorithm", default="ppo", type=str, required=False, choices=list(ALGOS.keys()))
-    parser.add_argument("--env", type=str, default="CartPole-v1", help="environment ID")
+    parser.add_argument("--algo", help="RL Algorithm", default="a2c", type=str, required=False, choices=list(ALGOS.keys()))
+    parser.add_argument("--env", type=str, default="antenna4x4-v1", help="environment ID")
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="", type=str)
     parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", default="", type=str)
     parser.add_argument(
@@ -37,7 +39,7 @@ def train() -> None:
         "--eval-freq",
         help="Evaluate the agent every n steps (if negative, no evaluation). "
         "During hyperparameter optimization n-evaluations is used instead",
-        default=25000,
+        default=10000,
         type=int,
     )
     parser.add_argument(
@@ -54,7 +56,7 @@ def train() -> None:
     )
     parser.add_argument("-f", "--log-folder", help="Log folder", type=str, default="logs")
     parser.add_argument("--seed", help="Random generator seed", type=int, default=-1)
-    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="dummy", choices=["dummy", "subproc"])
+    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="subproc", choices=["dummy", "subproc"])
     parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="auto", type=str)
     parser.add_argument(
         "--n-trials",
