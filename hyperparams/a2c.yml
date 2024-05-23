@@ -1,16 +1,16 @@
 antenna4x4-v1:
-  ent_coef: 0.015208018076726879                #0.0
+  #ent_coef: 0.015208018076726879                #0.0
   gamma: 0.9999                                 #0.99
-  #learning_rate: lin_7e-4                       # default 0.00007 
+  learning_rate: lin_7e-4                       # default 0.00007 
   # learning_rate: !!float 3e-4
-  max_grad_norm: 0.3
+  #max_grad_norm: 0.3
   n_envs: 20
-  n_steps: 128                                  #5
-  n_timesteps: !!float 4e5
+  #n_steps: 128                                  #5
+  n_timesteps: !!float 2e5
   policy: 'MlpPolicy'
   normalize: False
-  normalize_advantage: True
-  use_rms_prop: True
-  gae_lambda: 0.92                               # Default:1.0
-  learning_rate: 0.0029294802918620865
-  vf_coef: 0.11143875146423063
+  #normalize_advantage: True
+  #use_rms_prop: True
+  #gae_lambda: 0.92                               # Default:1.0
+  #learning_rate: 0.0029294802918620865
+  #vf_coef: 0.11143875146423063
