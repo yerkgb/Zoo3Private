@@ -14,3 +14,12 @@ antenna4x4-v1:
   #gae_lambda: 0.92                               # Default:1.0
   #learning_rate: 0.0029294802918620865
   #vf_coef: 0.11143875146423063
+
+
+antenna3x4-v1.1:
+  n_envs: 20
+  n_timesteps: !!float 2e5
+  policy: 'MlpPolicy'
+  gamma: 0.9999
+  learning_rate: !!float 7e-4
+
