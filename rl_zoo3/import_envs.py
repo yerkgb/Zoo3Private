@@ -19,7 +19,7 @@ except ImportError:
 
 register(
     # unique identifier for the env `name-version`
-    id="antenna3x4-v1.1",
+    id="antenna4x4-v1",
     # path to the class for creating the env
     # Note: entry_point also accept a class as input (and not only a string)
     entry_point=AntennaPlacementEnv,

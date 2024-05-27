@@ -22,7 +22,7 @@ from env.antennaEnv import AntennaPlacementEnv
 def train() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--algo", help="RL Algorithm", default="a2c", type=str, required=False, choices=list(ALGOS.keys()))
-    parser.add_argument("--env", type=str, default="antenna3x4-v1.1", help="environment ID")
+    parser.add_argument("--env", type=str, default="antenna4x4-v1", help="environment ID")
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
     parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", default="", type=str)
     parser.add_argument(
@@ -55,7 +55,7 @@ def train() -> None:
         "--save-replay-buffer", help="Save the replay buffer too (when applicable)", action="store_true", default=False
     )
     parser.add_argument("-f", "--log-folder", help="Log folder", type=str, default="logs")
-    parser.add_argument("--seed", help="Random generator seed", type=int, default=-1)
+    parser.add_argument("--seed", help="Random generator seed", type=int, default=123)
     parser.add_argument("--vec-env", help="VecEnv type", type=str, default="subproc", choices=["dummy", "subproc"])
     parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="auto", type=str)
     parser.add_argument(
