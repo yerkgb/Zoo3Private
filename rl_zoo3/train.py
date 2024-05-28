@@ -16,8 +16,7 @@ import rl_zoo3.import_envs  # noqa: F401
 from rl_zoo3.exp_manager import ExperimentManager
 from rl_zoo3.utils import ALGOS, StoreDict
 
-from gymnasium.envs.registration import register
-from env.antennaEnv import AntennaPlacementEnv
+
 
 def train() -> None:
     parser = argparse.ArgumentParser()
@@ -152,7 +151,7 @@ def train() -> None:
         "-P",
         "--progress",
         action="store_true",
-        default=False,
+        default=True,
         help="if toggled, display a progress bar using tqdm and rich",
     )
     parser.add_argument(
