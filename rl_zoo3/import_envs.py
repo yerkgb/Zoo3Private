@@ -26,6 +26,41 @@ register(
     # Max number of steps per episode, using a `TimeLimitWrapper`
     max_episode_steps=500,
     )
+del AntennaPlacementEnv
+
+try:
+    from env.antennaEnv_V2 import AntennaPlacementEnv
+except ImportError:
+    AntennaPlacementEnv = None
+    print("Custom Antenna Environment failed to import")
+
+register(
+    # unique identifier for the env `name-version`
+    id="antenna4x4-v2",
+    # path to the class for creating the env
+    # Note: entry_point also accept a class as input (and not only a string)
+    entry_point=AntennaPlacementEnv,
+    # Max number of steps per episode, using a `TimeLimitWrapper`
+    max_episode_steps=500,
+    )
+
+del AntennaPlacementEnv
+try:
+    from env.antennaEnv_V1_1 import AntennaPlacementEnv
+except ImportError:
+    AntennaPlacementEnv = None
+    print("Custom Antenna Environment failed to import")
+
+
+register(
+    id="antenna4x4-v1.1",
+    entry_point=AntennaPlacementEnv,
+    max_episode_steps=300,
+)
+
+
+
+
 
 
 # Register no vel envs
