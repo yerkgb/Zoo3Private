@@ -21,19 +21,16 @@ from rl_zoo3.utils import ALGOS, StoreDict
 def train() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--algo", help="RL Algorithm", default="a2c", type=str, required=False, choices=list(ALGOS.keys()))
-    parser.add_argument("--env", type=str, default="antenna4x4-v1", help="environment ID")
+    parser.add_argument("--env", type=str, default="antenna4x4-v1.1", help="environment ID")
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
-    parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", default="", type=str)
-    parser.add_argument(
-        "--truncate-last-trajectory",
-        help="When using HER with online sampling the last trajectory "
-        "in the replay buffer will be truncated after reloading the replay buffer.",
-        default=True,
-        type=bool,
-    )
+    parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", 
+                        default="", type=str)
+    #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\dqn\\antenna4x4-v2_4\\rl_model_500000_steps.zip
+    #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\ppo\\antenna4x4-v1_17\\rl_model_1000000_steps.zip
+    #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\a2c\\antenna4x4-v1_103\\rl_model_1000000_steps.zip
     parser.add_argument("-n", "--n-timesteps", help="Overwrite the number of timesteps", default=-1, type=int)
     parser.add_argument("--num-threads", help="Number of threads for PyTorch (-1 to use default)", default=-1, type=int)
-    parser.add_argument("--log-interval", help="Override log interval (default: -1, no change)", default=-1, type=int)
+    parser.add_argument("--log-interval", help="Override log interval (default: -1, no change)", default=10, type=int)
     parser.add_argument(
         "--eval-freq",
         help="Evaluate the agent every n steps (if negative, no evaluation). "
@@ -49,13 +46,13 @@ def train() -> None:
     )
     parser.add_argument("--eval-episodes", help="Number of episodes to use for evaluation", default=5, type=int)
     parser.add_argument("--n-eval-envs", help="Number of environments for evaluation", default=1, type=int)
-    parser.add_argument("--save-freq", help="Save the model every n steps (if negative, no checkpoint)", default=-1, type=int)
+    parser.add_argument("--save-freq", help="Save the model every n steps (if negative, no checkpoint)", default=10000, type=int)
     parser.add_argument(
         "--save-replay-buffer", help="Save the replay buffer too (when applicable)", action="store_true", default=False
     )
     parser.add_argument("-f", "--log-folder", help="Log folder", type=str, default="logs")
     parser.add_argument("--seed", help="Random generator seed", type=int, default=123)
-    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="subproc", choices=["dummy", "subproc"])
+    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="dummy", choices=["dummy", "subproc"])
     parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="auto", type=str)
     parser.add_argument(
         "--n-trials",
@@ -75,7 +72,7 @@ def train() -> None:
         "-optimize", "--optimize-hyperparameters", action="store_true", default=False, help="Run hyperparameters search"
     )
     parser.add_argument(
-        "--no-optim-plots", action="store_true", default=False, help="Disable hyperparameter optimization plots"
+        "--no-optim-plots", action="store_true", default=True, help="Disable hyperparameter optimization plots"
     )
     parser.add_argument("--n-jobs", help="Number of parallel jobs when optimizing hyperparameters", type=int, default=1)
     parser.add_argument(
@@ -98,7 +95,7 @@ def train() -> None:
         help="Training policies are evaluated every n-timesteps // n-evaluations steps when doing hyperparameter optimization."
         "Default is 1 evaluation per 100k timesteps.",
         type=int,
-        default=None,
+        default=50000,
     )
     parser.add_argument(
         "--storage", help="Database storage path if distributed optimization should be used", type=str, default=None
@@ -155,7 +152,7 @@ def train() -> None:
         help="if toggled, display a progress bar using tqdm and rich",
     )
     parser.add_argument(
-        "-tags", "--wandb-tags", type=str, default=[], nargs="+", help="Tags for wandb run, e.g.: -tags optimized pr-123"
+        "-tags", "--wandb-tags", type=str, default=["seed-123"], nargs="+", help="Tags for wandb run, e.g.: -tags optimized pr-123"
     )
 
     args = parser.parse_args()
@@ -244,7 +241,6 @@ def train() -> None:
         args.optimization_log_path,
         n_startup_trials=args.n_startup_trials,
         n_evaluations=args.n_evaluations,
-        truncate_last_trajectory=args.truncate_last_trajectory,
         uuid_str=uuid_str,
         seed=args.seed,
         log_interval=args.log_interval,
