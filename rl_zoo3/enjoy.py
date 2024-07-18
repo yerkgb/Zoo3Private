@@ -1,14 +1,16 @@
 import argparse
 import importlib
 import os
+import random
 import sys
-
+import json
 import numpy as np
 import torch as th
 import yaml
 from huggingface_sb3 import EnvironmentName
 from stable_baselines3.common.callbacks import tqdm
 from stable_baselines3.common.utils import set_random_seed
+from texttable import Texttable
 
 import rl_zoo3.import_envs  # noqa: F401 pylint: disable=unused-import
 from rl_zoo3 import ALGOS, create_test_env, get_saved_hyperparams
@@ -19,13 +21,13 @@ from rl_zoo3.utils import StoreDict, get_model_path
 
 def enjoy() -> None:  # noqa: C901
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env", help="environment ID", type=EnvironmentName, default="CartPole-v1")
-    parser.add_argument("-f", "--folder", help="Log folder", type=str, default="rl-trained-agents")
-    parser.add_argument("--algo", help="RL Algorithm", default="ppo", type=str, required=False, choices=list(ALGOS.keys()))
+    parser.add_argument("--env", help="environment ID", type=EnvironmentName, default="antenna4x4-v1")
+    parser.add_argument("-f", "--folder", help="Log folder", type=str, default="logs")
+    parser.add_argument("--algo", help="RL Algorithm", default="a2c", type=str, required=False, choices=list(ALGOS.keys()))
     parser.add_argument("-n", "--n-timesteps", help="number of timesteps", default=1000, type=int)
     parser.add_argument("--num-threads", help="Number of threads for PyTorch (-1 to use default)", default=-1, type=int)
     parser.add_argument("--n-envs", help="number of environments", default=1, type=int)
-    parser.add_argument("--exp-id", help="Experiment ID (default: 0: latest, -1: no exp folder)", default=0, type=int)
+    parser.add_argument("--exp-id", help="Experiment ID (default: 0: latest, -1: no exp folder)", default=53, type=int)
     parser.add_argument("--verbose", help="Verbose mode (0: no output, 1: INFO)", default=1, type=int)
     parser.add_argument(
         "--no-render", action="store_true", default=False, help="Do not render the environment (useful for tests)"
@@ -33,7 +35,7 @@ def enjoy() -> None:  # noqa: C901
     parser.add_argument("--deterministic", action="store_true", default=False, help="Use deterministic actions")
     parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="auto", type=str)
     parser.add_argument(
-        "--load-best", action="store_true", default=False, help="Load best model instead of last model if available"
+        "--load-best", action="store_true", default=True, help="Load best model instead of last model if available"
     )
     parser.add_argument(
         "--load-checkpoint",
@@ -49,9 +51,9 @@ def enjoy() -> None:  # noqa: C901
     )
     parser.add_argument("--stochastic", action="store_true", default=False, help="Use stochastic actions")
     parser.add_argument(
-        "--norm-reward", action="store_true", default=False, help="Normalize reward if applicable (trained with VecNormalize)"
+        "--norm-reward", action="store_true", default=True, help="Normalize reward if applicable (trained with VecNormalize)"
     )
-    parser.add_argument("--seed", help="Random generator seed", type=int, default=0)
+    parser.add_argument("--seed", help="Random generator seed", type=int, default=123)
     parser.add_argument("--reward-log", help="Where to log reward", default="", type=str)
     parser.add_argument(
         "--gym-packages",
@@ -70,7 +72,7 @@ def enjoy() -> None:  # noqa: C901
         "-P",
         "--progress",
         action="store_true",
-        default=False,
+        default=True,
         help="if toggled, display a progress bar using tqdm and rich",
     )
     args = parser.parse_args()
@@ -199,6 +201,9 @@ def enjoy() -> None:  # noqa: C901
     episode_reward = 0.0
     episode_rewards, episode_lengths = [], []
     ep_len = 0
+    gratingLobeDiff_dB = []
+    bw3dBWorst_pi = []
+    
     # For HER, monitor success rate
     successes = []
     lstm_states = None
@@ -212,14 +217,20 @@ def enjoy() -> None:  # noqa: C901
 
     try:
         for _ in generator:
+            
+            model.set_random_seed(random.randint(1,100000))
             action, lstm_states = model.predict(
                 obs,  # type: ignore[arg-type]
                 state=lstm_states,
                 episode_start=episode_start,
                 deterministic=deterministic,
             )
+            
             obs, reward, done, infos = env.step(action)
-
+            
+            gratingLobeDiff_dB.append(infos[0]['gratingLobeDiff_dB'])
+            bw3dBWorst_pi.append(infos[0]['bw3dBWorst_pi'])
+            
             episode_start = done
 
             if not args.no_render:
@@ -242,6 +253,7 @@ def enjoy() -> None:  # noqa: C901
                     # is a normalized reward when `--norm_reward` flag is passed
                     print(f"Episode Reward: {episode_reward:.2f}")
                     print("Episode Length", ep_len)
+                    print(f"Normalized Reward: {episode_reward/ep_len}")
                     episode_rewards.append(episode_reward)
                     episode_lengths.append(ep_len)
                     episode_reward = 0.0
@@ -259,16 +271,51 @@ def enjoy() -> None:  # noqa: C901
     except KeyboardInterrupt:
         pass
 
+
     if args.verbose > 0 and len(successes) > 0:
         print(f"Success rate: {100 * np.mean(successes):.2f}%")
-
+##
     if args.verbose > 0 and len(episode_rewards) > 0:
-        print(f"{len(episode_rewards)} Episodes")
-        print(f"Mean reward: {np.mean(episode_rewards):.2f} +/- {np.std(episode_rewards):.2f}")
+       print(f"{len(episode_rewards)} Episodes")
+       print(f"Mean reward: {np.mean(episode_rewards):.2f} +/- {np.std(episode_rewards):.2f}")
 
     if args.verbose > 0 and len(episode_lengths) > 0:
         print(f"Mean episode length: {np.mean(episode_lengths):.2f} +/- {np.std(episode_lengths):.2f}")
 
+
+    normalized_rewards = [reward / episode_lengths for reward in episode_rewards]
+    avg_reward_per_step = np.mean(normalized_rewards)
+    std_reward_per_step = np.std(normalized_rewards)
+    
+    results = {
+        "mean_gratingLobeDiff_dB": np.mean(gratingLobeDiff_dB),
+        "std_gratingLobeDiff_dB": np.std(gratingLobeDiff_dB),
+        "mean_bw3dBWorst_pi": np.mean(bw3dBWorst_pi),
+        "std_bw3dBWorst_pi": np.std(bw3dBWorst_pi),
+        "mean_normalized_rewards_per_step": avg_reward_per_step,
+        "std_normalized_rewards_per_step": std_reward_per_step,
+        "mean_episode_reward": np.mean(episode_rewards),
+        "std_episode_reward": np.std(episode_rewards),
+        "mean_episode_length": episode_lengths
+    }
+    
+    table = Texttable()
+    table.add_rows([
+        ["Metric", "mean", "std"],
+        ["gratingLobeDiff_dB", results["mean_gratingLobeDiff_dB"],results["std_gratingLobeDiff_dB"] ],
+        ["bw3dBWorst_pi", results["mean_bw3dBWorst_pi"], results["std_bw3dBWorst_pi"]],
+        ["normalized_rewards_per_step", results["mean_normalized_rewards_per_step"], results["std_normalized_rewards_per_step"]],
+        ["episode_reward", results["mean_episode_reward"], results["std_episode_reward"]],
+    ])
+    print(table.draw())
+
+    output_file = model_path+"_enjoyEvaluation.json"
+     # Save to JSON file
+    with open(output_file, 'w') as f:
+        json.dump(results, f, indent=4)
+    
+    print("Results saved to:", output_file)
+    
     env.close()
 
 
