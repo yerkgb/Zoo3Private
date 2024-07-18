@@ -1,25 +1,78 @@
-antenna4x4-v1:
-  #ent_coef: 0.015208018076726879                #0.0
-  #gamma: 0.9999                                 #0.99
-  #learning_rate: lin_7e-4                       # default 0.00007 
-  learning_rate: !!float 7e-4
-  #max_grad_norm: 0.3
-  n_envs: 20
-  #n_steps: 128                                  #5
-  n_timesteps: !!float 5e5
+antenna4x4-v1:               
+  #gamma: 0.8                                #0.99
+  #learning_rate: lin_3e-4                       # default 0.00007 
+  learning_rate: !!float 3e-4
+  n_envs: 20                           #5
+  n_timesteps: !!float 1e6
   policy: 'MlpPolicy'
-  #normalize: False
-  #normalize_advantage: True
-  #use_rms_prop: True
-  #gae_lambda: 0.92                               # Default:1.0
-  #learning_rate: 0.0029294802918620865
-  #vf_coef: 0.11143875146423063
+  normalize_advantage: False
+  ent_coef: 0.001
+  policy_kwargs: "dict(
+                       activation_fn=nn.ReLU,
+                       net_arch=dict(pi=[256, 256], vf=[256, 256])
+                       )"
+                       
+
+antenna4x4-v2:               
+  n_envs: 20                           #5
+  n_timesteps: !!float 1e6
+  policy: 'MlpPolicy'
+  ent_coef: 0.004
+
+antenna4x4-v1.1:
+  n_envs: 10
+  n_timesteps: !!float 1e5
+  policy: 'MultiInputPolicy'
 
 
-antenna3x4-v1.1:
-  n_envs: 20
-  n_timesteps: !!float 2e5
-  policy: 'MlpPolicy'
-  gamma: 0.9999
-  learning_rate: !!float 7e-4
+
+
+
+# Tuned for single env
+#antenna4x4-v1:
+#  n_envs: 1
+#  gamma: 0.9
+#  normalize_advantage: True
+#  max_grad_norm: 1
+#  use_rms_prop: True
+#  gae_lambda: 0.8
+#  n_steps: 64
+#  learning_rate: 0.0024314642468828292
+#  ent_coef: 0.001270809607125551
+#  vf_coef: 0.9521627218860386
+#  policy: 'MlpPolicy'
+#  n_timesteps: !!float 5e5
+
+# Tuned for multiple env 18.06
+#antenna4x4-v1:
+#  n_envs: 20
+#  gamma: 0.9
+#  learning_rate: lin_3e-3
+#  policy: 'MlpPolicy'
+#  n_timesteps: !!float 5e5 
+#  #net_arch: 'medium'
+#  n_steps: 16
+#  normalize_advantage: True
+#  max_grad_norm: 0.3
+#  use_rms_prop: False
+#  gae_lambda: 0.8
+#  ent_coef: 0.004606016885258312
+#  vf_coef: 0.8331443088325493
+
+
+##Tuned for multiple env 01.07
+#antenna4x4-v1:
+#  n_envs: 20
+#  gamma: 0.95
+#  learning_rate: 0.001322922202981433
+#  policy: 'MlpPolicy'
+#  n_timesteps: !!float 5e5 
+#  #net_arch: 'medium'
+#  n_steps: 512
+#  normalize_advantage: True
+#  max_grad_norm: 2
+#  use_rms_prop: False
+#  gae_lambda: 1.0
+#  ent_coef: 8.620424471781676e-05
+#  vf_coef: 0.12224354963250506
 
