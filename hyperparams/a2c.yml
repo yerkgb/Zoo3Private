@@ -2,7 +2,7 @@ antenna4x4-v1:
   #gamma: 0.8                                #0.99
   #learning_rate: lin_3e-4                       # default 0.00007 
   learning_rate: !!float 3e-4
-  n_envs: 20                           #5
+  n_envs: 20                            #5
   n_timesteps: !!float 1e6
   policy: 'MlpPolicy'
   normalize_advantage: False
@@ -23,9 +23,16 @@ antenna4x4-v1.1:
   n_envs: 10
   n_timesteps: !!float 1e5
   policy: 'MultiInputPolicy'
-
-
-
+  gamma: 0.9999
+  normalize_advantage: True
+  max_grad_norm: 0.5
+  use_rms_prop: True
+  gae_lambda: 0.8
+  n_steps: 32
+  #learning_rate: !!float 3e-3
+  learning_rate: 0.0019517172827968033
+  ent_coef: 0.006844205648137561
+  vf_coef: 0.42788016145892316
 
 
 # Tuned for single env

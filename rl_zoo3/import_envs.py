@@ -55,7 +55,7 @@ except ImportError:
 register(
     id="antenna4x4-v1.1",
     entry_point=AntennaPlacementEnv,
-    max_episode_steps=300,
+    max_episode_steps=25,
 )
 
 

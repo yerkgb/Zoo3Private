@@ -25,6 +25,7 @@ def train() -> None:
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
     parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", 
                         default="", type=str)
+    #C:\Users\yernkube\Documents\DRLAntennaSearch\logs\\a2c\\antenna4x4-v1.1_18\\rl_model_470000_steps.zip
     #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\dqn\\antenna4x4-v2_4\\rl_model_500000_steps.zip
     #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\ppo\\antenna4x4-v1_17\\rl_model_1000000_steps.zip
     #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\a2c\\antenna4x4-v1_103\\rl_model_1000000_steps.zip
@@ -59,22 +60,22 @@ def train() -> None:
         help="Number of trials for optimizing hyperparameters. "
         "This applies to each optimization runner, not the entire optimization process.",
         type=int,
-        default=500,
+        default=1,
     )
     parser.add_argument(
         "--max-total-trials",
         help="Number of (potentially pruned) trials for optimizing hyperparameters. "
         "This applies to the entire optimization process and takes precedence over --n-trials if set.",
         type=int,
-        default=None,
+        default=1,
     )
     parser.add_argument(
         "-optimize", "--optimize-hyperparameters", action="store_true", default=False, help="Run hyperparameters search"
     )
     parser.add_argument(
-        "--no-optim-plots", action="store_true", default=True, help="Disable hyperparameter optimization plots"
+        "--no-optim-plots", action="store_true", default=False, help="Disable hyperparameter optimization plots"
     )
-    parser.add_argument("--n-jobs", help="Number of parallel jobs when optimizing hyperparameters", type=int, default=1)
+    parser.add_argument("--n-jobs", help="Number of parallel jobs when optimizing hyperparameters", type=int, default=-1)
     parser.add_argument(
         "--sampler",
         help="Sampler to use when optimizing hyperparameters",
