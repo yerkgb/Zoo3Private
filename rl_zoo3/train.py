@@ -20,6 +20,7 @@ from rl_zoo3.utils import ALGOS, StoreDict
 
 def train() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--exp-name", help="Experiment name", default=str("newReward()-10Xbw3dBWorst_pi_with_early_check_lr_0.0001"), type=str)
     parser.add_argument("--algo", help="RL Algorithm", default="a2c", type=str, required=False, choices=list(ALGOS.keys()))
     parser.add_argument("--env", type=str, default="antenna4x4-v1.1", help="environment ID")
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
@@ -219,6 +220,7 @@ def train() -> None:
 
     exp_manager = ExperimentManager(
         args,
+        args.exp_name,
         args.algo,
         env_id,
         args.log_folder,
