@@ -4,11 +4,31 @@ import gymnasium as gym
 from gymnasium.envs.registration import register
 
 from rl_zoo3.wrappers import MaskVelocityWrapper
+from gymnasium.wrappers import NormalizeObservation
 
 try:
     import pybullet_envs_gymnasium
 except ImportError:
     pass
+
+import numpy as np
+
+class ObservationNormalizationWrapper(gym.ObservationWrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        self.mean = np.zeros(env.observation_space['antenna_positions'].shape, dtype=np.float32)
+        self.std = np.ones(env.observation_space.shape['antenna_positions'], dtype=np.float32)
+        
+    def observation(self, observation):
+        normalized_obs = (observation - self.mean) / (self.std + 1e-8)
+        return normalized_obs
+
+def create_normalized_env(env_id: str) -> Callable[[Optional[str]], gym.Env]:
+    def make_env(render_mode: Optional[str] = None) -> gym.Env:
+        env = gym.make(env_id, render_mode=render_mode)
+        env = ObservationNormalizationWrapper(env)
+        return env
+    return make_env
 
 
 try:
@@ -24,7 +44,7 @@ register(
     # Note: entry_point also accept a class as input (and not only a string)
     entry_point=AntennaPlacementEnv,
     # Max number of steps per episode, using a `TimeLimitWrapper`
-    max_episode_steps=500,
+    max_episode_steps=25,
     )
 del AntennaPlacementEnv
 
@@ -53,8 +73,20 @@ except ImportError:
 
 
 register(
-    id="antenna4x4-v1.1",
+    id="antenna4x4-v1_1",
     entry_point=AntennaPlacementEnv,
+    max_episode_steps=25,
+)
+
+register(
+    id="antenna3x4-v1_1",
+    entry_point=AntennaPlacementEnv,
+    max_episode_steps=25,
+)
+
+register(
+    id="antenna4x4-v1.1_n",
+    entry_point=create_normalized_env("antenna4x4-v1.1"),
     max_episode_steps=25,
 )
 

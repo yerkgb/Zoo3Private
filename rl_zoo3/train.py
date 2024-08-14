@@ -20,16 +20,13 @@ from rl_zoo3.utils import ALGOS, StoreDict
 
 def train() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp-name", help="Experiment name", default=str("newReward()-10Xbw3dBWorst_pi_with_early_check_lr_0.0001"), type=str)
+    parser.add_argument("--exp-name", help="Experiment name", default=str("3x4_afterStichingBug_lr_lin_0.00003_until_to2M"), type=str)
     parser.add_argument("--algo", help="RL Algorithm", default="a2c", type=str, required=False, choices=list(ALGOS.keys()))
-    parser.add_argument("--env", type=str, default="antenna4x4-v1.1", help="environment ID")
+    parser.add_argument("--env", type=str, default="antenna3x4-v1_1", help="environment ID")
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
     parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", 
                         default="", type=str)
     #C:\Users\yernkube\Documents\DRLAntennaSearch\logs\\a2c\\antenna4x4-v1.1_18\\rl_model_470000_steps.zip
-    #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\dqn\\antenna4x4-v2_4\\rl_model_500000_steps.zip
-    #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\ppo\\antenna4x4-v1_17\\rl_model_1000000_steps.zip
-    #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\a2c\\antenna4x4-v1_103\\rl_model_1000000_steps.zip
     parser.add_argument("-n", "--n-timesteps", help="Overwrite the number of timesteps", default=-1, type=int)
     parser.add_argument("--num-threads", help="Number of threads for PyTorch (-1 to use default)", default=-1, type=int)
     parser.add_argument("--log-interval", help="Override log interval (default: -1, no change)", default=10, type=int)
