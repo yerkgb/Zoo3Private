@@ -14,10 +14,22 @@ antenna4x4-v1:
                        
 
 antenna4x4-v2:               
-  n_envs: 20                           
-  n_timesteps: !!float 1e6
+  n_envs: 20
+  n_timesteps: !!float 5e5
   policy: 'MlpPolicy'
-  ent_coef: 0.004
+  gamma: 0.9999
+  normalize_advantage: True
+  max_grad_norm: 0.5
+  use_rms_prop: True
+  gae_lambda: 0.8
+  n_steps: 32
+  learning_rate: lin_0.00195
+  ent_coef: 0.006844205648137561
+  vf_coef: 0.42788016145892316
+  policy_kwargs: "dict(
+                       activation_fn=nn.ReLU,
+                       net_arch=dict(pi=[256, 256], vf=[256, 256])
+                       )"
 
 
 
@@ -46,7 +58,7 @@ antenna4x4-v1_1:
 #To compare the result with Backtracking
 antenna3x4-v1_1:
   n_envs: 20
-  n_timesteps: !!float 2e6
+  n_timesteps: !!float 10e5
   policy: 'MultiInputPolicy'
   gamma: 0.9999
   normalize_advantage: True
@@ -54,11 +66,50 @@ antenna3x4-v1_1:
   use_rms_prop: True
   gae_lambda: 0.8
   n_steps: 32
-  learning_rate: lin_0.00003
+  learning_rate: lin_0.000195
   ent_coef: 0.006844205648137561
   vf_coef: 0.42788016145892316
   policy_kwargs: "dict(
                        activation_fn=nn.ReLU,
                        net_arch=dict(pi=[256, 256], vf=[256, 256])
                        )"
+
+#Tuned on 30.08
+antenna3x4-v1_1:
+  n_envs: 40
+  n_timesteps: !!float 10e5
+  policy: 'MultiInputPolicy'
+  gamma: 0.9
+  normalize_advantage: False
+  max_grad_norm: 5.0
+  use_rms_prop: True
+  gae_lambda: 0.92
+  n_steps: 8
+  learning_rate: 0.007566785861472658
+  ent_coef: 0.00030326019001703007
+  vf_coef:  0.05367410386766924
+  policy_kwargs: "dict(
+                       activation_fn=nn.Tanh,
+                       net_arch=dict(pi=[64, 64], vf=[64, 64])
+                       )"
+
+#Tuned on 01-02.09.2024
+antenna3x4-v1_1:
+  n_envs: 40
+  n_timesteps: !!float 5e5
+  policy: 'MultiInputPolicy'
+  gamma: 0.98
+  normalize_advantage: True
+  max_grad_norm: 2
+  use_rms_prop: True
+  gae_lambda: 0.92
+  n_steps: 2
+  learning_rate: lin_0.000195
+  ent_coef: 0.0030565850454063294
+  vf_coef:  0.07243133325050177
+  policy_kwargs: "dict(
+                       activation_fn=nn.Tanh,
+                       net_arch=dict(pi=[64, 64], vf=[64, 64])
+                       )"
+
 

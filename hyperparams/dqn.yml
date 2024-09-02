@@ -1,8 +1,13 @@
 antenna4x4-v2: 
   n_envs: 20                               #5
-  n_timesteps: !!float 10e5
+  n_timesteps: !!float 5e5
   policy: 'MlpPolicy'
+  learning_rate: !!float 3e-3
+  exploration_fraction: 0.1
+  exploration_final_eps: 0.01
   policy_kwargs: "dict(net_arch=[256, 256])"
+
+
 
 atari:
   env_wrapper:
