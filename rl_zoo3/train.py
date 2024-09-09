@@ -20,6 +20,10 @@ from rl_zoo3.utils import ALGOS, StoreDict
 
 def train() -> None:
     parser = argparse.ArgumentParser()
+<<<<<<< 3x4_Environment
+=======
+    parser.add_argument("--exp-name", help="Experiment name", default=str("early_check_termination_FALSE"), type=str)
+>>>>>>> local
     parser.add_argument("--algo", help="RL Algorithm", default="a2c", type=str, required=False, choices=list(ALGOS.keys()))
     parser.add_argument("--env", type=str, default="antenna4x4-v1.1", help="environment ID")
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
