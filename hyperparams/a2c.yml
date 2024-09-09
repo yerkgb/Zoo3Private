@@ -65,7 +65,7 @@ antenna3x4-v1_1:
   max_grad_norm: 0.5
   use_rms_prop: True
   gae_lambda: 0.8
-  n_steps: 32
+  n_steps: 8
   learning_rate: lin_0.000195
   ent_coef: 0.006844205648137561
   vf_coef: 0.42788016145892316
@@ -111,5 +111,23 @@ antenna3x4-v1_1:
                        activation_fn=nn.Tanh,
                        net_arch=dict(pi=[64, 64], vf=[64, 64])
                        )"
+
+antenna3x4-v1_2:
+  n_envs: 40
+  n_timesteps: !!float 10e5
+  policy: 'MultiInputPolicy'
+  gamma: 0.99
+  normalize_advantage: False
+  #max_grad_norm: 2.0
+  #use_rms_prop: True
+  #gae_lambda: 0.92
+  n_steps: 2
+  learning_rate:  0.00009
+  #ent_coef: 0.04
+  #vf_coef:  0.5
+  policy_kwargs: "dict(
+                       activation_fn=nn.Tanh,
+                        net_arch=dict(pi=[256, 256], vf=[256, 256])
+                      )"
 
 

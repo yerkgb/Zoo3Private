@@ -84,33 +84,21 @@ register(
     max_episode_steps=25,
 )
 
+#### antenna3x4-v1.2
+del AntennaPlacementEnv
+try:
+    from env.antennaEnv_V1_2 import AntennaPlacementEnv
+except ImportError:
+    AntennaPlacementEnv = None
+    print("Custom Antenna Environment failed to import")
+
+
 register(
-    id="antenna4x4-v1.1_n",
-    entry_point=create_normalized_env("antenna4x4-v1.1"),
-    max_episode_steps=25,
+    id="antenna3x4-v1_2",
+    entry_point=AntennaPlacementEnv,
+    max_episode_steps=5,
 )
 
-
-
-
-
-
-# Register no vel envs
-def create_no_vel_env(env_id: str) -> Callable[[Optional[str]], gym.Env]:
-    def make_env(render_mode: Optional[str] = None) -> gym.Env:
-        env = gym.make(env_id, render_mode=render_mode)
-        env = MaskVelocityWrapper(env)
-        return env
-
-    return make_env
-
-
-
-for env_id in MaskVelocityWrapper.velocity_indices.keys():
-    name, version = env_id.split("-v")
-    register(
-        id=f"{name}NoVel-v{version}",
-        entry_point=create_no_vel_env(env_id),  # type: ignore[arg-type]
-    )
+#### end
     
 
