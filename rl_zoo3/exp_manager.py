@@ -63,6 +63,7 @@ class ExperimentManager:
     def __init__(
         self,
         args: argparse.Namespace,
+        exp_name: str,
         algo: str,
         env_id: str,
         log_folder: str,
@@ -100,6 +101,7 @@ class ExperimentManager:
         show_progress: bool = False,
     ):
         super().__init__()
+        self.experiment_name = exp_name
         self.algo = algo
         self.env_name = EnvironmentName(env_id)
         # Custom params
@@ -166,7 +168,7 @@ class ExperimentManager:
 
         # Logging
         self.log_folder = log_folder
-        self.tensorboard_log = None if tensorboard_log == "" else os.path.join(tensorboard_log, self.env_name)
+        self.tensorboard_log = None if tensorboard_log == "" else os.path.join(tensorboard_log, self.env_name, self.experiment_name)
         self.verbose = verbose
         self.args = args
         self.log_interval = log_interval
