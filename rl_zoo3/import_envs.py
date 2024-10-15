@@ -5,6 +5,9 @@ from gymnasium.envs.registration import register
 
 from rl_zoo3.wrappers import MaskVelocityWrapper
 from gymnasium.wrappers import NormalizeObservation
+from rl_zoo3.wrappers import ObservationNormalizationWrapper
+from gymnasium.wrappers import NormalizeReward
+from gymnasium.wrappers import FlattenObservation
 
 try:
     import pybullet_envs_gymnasium
@@ -13,20 +16,13 @@ except ImportError:
 
 import numpy as np
 
-class ObservationNormalizationWrapper(gym.ObservationWrapper):
-    def __init__(self, env):
-        super().__init__(env)
-        self.mean = np.zeros(env.observation_space['antenna_positions'].shape, dtype=np.float32)
-        self.std = np.ones(env.observation_space.shape['antenna_positions'], dtype=np.float32)
-        
-    def observation(self, observation):
-        normalized_obs = (observation - self.mean) / (self.std + 1e-8)
-        return normalized_obs
 
 def create_normalized_env(env_id: str) -> Callable[[Optional[str]], gym.Env]:
     def make_env(render_mode: Optional[str] = None) -> gym.Env:
         env = gym.make(env_id, render_mode=render_mode)
         env = ObservationNormalizationWrapper(env)
+        #env = FlattenObservation(env)
+        #env = NormalizeReward(env)
         return env
     return make_env
 
@@ -84,6 +80,29 @@ register(
     max_episode_steps=25,
 )
 
+
+#### antenna3x3-v1.2
+del AntennaPlacementEnv
+try:
+    from env.antennaEnv_V1_2 import AntennaPlacementEnv
+except ImportError:
+    AntennaPlacementEnv = None
+    print("Custom Antenna Environment failed to import")
+
+register(
+    id="antenna3x3-v1_2",
+    entry_point=AntennaPlacementEnv,
+    max_episode_steps=5,
+)
+
+register(
+    id="antenna3x3-v1.2_n",
+    entry_point=create_normalized_env("antenna3x3-v1_2"),
+    max_episode_steps=1,
+)
+
+
+
 #### antenna3x4-v1.2
 del AntennaPlacementEnv
 try:
@@ -92,10 +111,15 @@ except ImportError:
     AntennaPlacementEnv = None
     print("Custom Antenna Environment failed to import")
 
-
 register(
     id="antenna3x4-v1_2",
     entry_point=AntennaPlacementEnv,
+    max_episode_steps=5,
+)
+
+register(
+    id="antenna3x4-v1.2_n",
+    entry_point=create_normalized_env("antenna3x4-v1_2"),
     max_episode_steps=5,
 )
 

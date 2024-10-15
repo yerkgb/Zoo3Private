@@ -8,6 +8,8 @@ from sb3_contrib.common.wrappers import TimeFeatureWrapper  # noqa: F401 (backwa
 from stable_baselines3.common.type_aliases import GymResetReturn, GymStepReturn
 
 
+
+
 class TruncatedOnSuccessWrapper(gym.Wrapper):
     """
     Reset on success and offsets the reward.
@@ -323,3 +325,47 @@ class MaskVelocityWrapper(gym.ObservationWrapper):
 
     def observation(self, observation: np.ndarray) -> np.ndarray:
         return observation * self.mask
+
+
+class ObservationNormalizationWrapper(gym.ObservationWrapper):
+    def __init__(self, env):
+        super().__init__(env)
+        if isinstance(env.observation_space, spaces.Dict):
+                
+            self.mean = {
+                'antenna_positions': np.zeros(env.observation_space['antenna_positions'].shape, dtype=np.float32),
+                'geometry_properties': np.zeros(env.observation_space['geometry_properties'].shape, dtype=np.float32)
+            }
+            self.std = {
+                'antenna_positions': np.ones(env.observation_space['antenna_positions'].shape, dtype=np.float32),
+                'geometry_properties': np.ones(env.observation_space['geometry_properties'].shape, dtype=np.float32)
+            }
+            
+            
+        else:
+            raise NotImplementedError("Only Dict observation spaces are supported")
+        
+    def observation(self, observation):
+        normalized_obs = {
+            'antenna_positions': (observation['antenna_positions'] - self.mean['antenna_positions']) / (self.std['antenna_positions'] + 1e-8),
+            'geometry_properties': (observation['geometry_properties'] - self.mean['geometry_properties']) / (self.std['geometry_properties'] + 1e-8),
+            #'RxGrid': observation['RxGrid'],
+            #'TxGrid': observation['TxGrid']
+        }
+        
+        #antenna_positions = observation['antenna_positions']
+        #low_limits = self.observation_space['antenna_positions'].low
+        #low_limits_flattened = low_limits.flatten().astype(dtype=np.float32)
+        #
+        #antenna_positions_norm = (antenna_positions - low_limits_flattened) / \
+        #                     (self.observation_space['antenna_positions'].high - self.observation_space['antenna_positions'].low)
+        ##normalized_obs['antenna_positions'] = antenna_positions_norm
+        #
+        #geometry_properties = observation['geometry_properties']
+        #low_limits = self.observation_space['geometry_properties'].low
+        #
+        #geometry_properties_norm = (geometry_properties - low_limits) / \
+        #     (self.observation_space['geometry_properties'].high - self.observation_space['geometry_properties'].low)
+        ##normalized_obs['geometry_properties'] = geometry_properties_norm
+        
+        return normalized_obs
