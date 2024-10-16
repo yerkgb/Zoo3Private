@@ -159,7 +159,7 @@ antenna3x3-v1.2_n:
   vf_coef:  0.6
 
 antenna3x4-v1.2_n:
-  n_envs: 40
+  n_envs: 10
   n_timesteps: !!float 1e6
   policy: 'MultiInputPolicy'
   gamma: 0.99
