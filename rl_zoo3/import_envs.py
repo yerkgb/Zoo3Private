@@ -112,14 +112,14 @@ except ImportError:
     print("Custom Antenna Environment failed to import")
 
 register(
-    id="antenna3x4-v1_2",
+    id="antenna3x4-v1.2",
     entry_point=AntennaPlacementEnv,
-    max_episode_steps=5,
+    max_episode_steps=25,
 )
 
 register(
     id="antenna3x4-v1.2_n",
-    entry_point=create_normalized_env("antenna3x4-v1_2"),
+    entry_point=create_normalized_env("antenna3x4-v1.2"),
     max_episode_steps=5,
 )
 

@@ -158,18 +158,18 @@ antenna3x3-v1.2_n:
   ent_coef: 0.001
   vf_coef:  0.6
 
-antenna3x4-v1.2_n:
+antenna3x4-v1.2:
   n_envs: 10
-  n_timesteps: !!float 1e6
+  n_timesteps: !!float 2e5
   policy: 'MultiInputPolicy'
   gamma: 0.99
-  normalize_advantage: False
-  max_grad_norm: 2.0
+  normalize_advantage: True
+  #max_grad_norm: 2.0
   use_rms_prop: False
   gae_lambda: 0.95
-  n_steps: 2
-  learning_rate:  0.0009
+  n_steps: 4
+  learning_rate:  0.000195
   ent_coef: 0.001
-  vf_coef:  0.6
+  vf_coef:  0.5
 
 
