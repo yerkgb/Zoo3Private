@@ -20,13 +20,13 @@ from rl_zoo3.utils import ALGOS, StoreDict
 
 def train() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp-name", help="Experiment name", default=str("3x4+sparseRew+lr0.0003_N25"), type=str)
+    parser.add_argument("--exp-name", help="Experiment name", default=str("3x4+CombinedRew+lr0.0001_N25_MiddleSearch"), type=str)
     parser.add_argument("--algo", help="RL Algorithm", default="a2c", type=str, required=False, choices=list(ALGOS.keys()))
     parser.add_argument("--env", type=str, default="antenna3x4-v1.2", help="environment ID")
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
     parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", 
-                        #default="logs\\a2c\\antenna3x4-v1.2_n_8\\rl_model_100000_steps.zip", type=str)
-                        default="", type=str)
+                        default="logs\\a2c\\antenna3x4-v1.2_24\\rl_model_90000_steps.zip", type=str)
+                        #default="", type=str)
     parser.add_argument("-n", "--n-timesteps", help="Overwrite the number of timesteps", default=-1, type=int)
     parser.add_argument("--num-threads", help="Number of threads for PyTorch (-1 to use default)", default=-1, type=int)
     parser.add_argument("--log-interval", help="Override log interval (default: -1, no change)", default=100, type=int)
