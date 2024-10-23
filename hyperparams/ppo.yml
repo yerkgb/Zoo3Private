@@ -26,7 +26,7 @@ antenna3x4-v1.2:
   clip_range: 0.05
   policy_kwargs: "dict(
                        activation_fn=nn.ReLU,
-                      net_arch=dict(pi=[64, 64, 64], vf=[64, 64, 64])
+                      net_arch=dict(pi=[64, 64], vf=[64, 64])
                        )"
 
 
