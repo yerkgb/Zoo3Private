@@ -30,6 +30,25 @@ antenna3x4-v1.2:
                        )"
 
 
+antenna4x4-v1.2:
+  n_envs: 40
+  n_steps: 8
+  batch_size: 320
+  n_timesteps: !!float 1e6
+  policy: 'MultiInputPolicy'
+  gamma: 0.9
+  normalize_advantage: True
+  max_grad_norm: 2.0
+  gae_lambda: 0.9
+  learning_rate:  1.0e-06
+  ent_coef:  0.01
+  vf_coef:  0.5
+  clip_range: 0.02
+  policy_kwargs: "dict(
+                       activation_fn=nn.ReLU,
+                      net_arch=dict(pi=[256, 256, 256], vf=[256, 256, 256])
+                       )"
+
 atari:
   env_wrapper:
     - stable_baselines3.common.atari_wrappers.AtariWrapper

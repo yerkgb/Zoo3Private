@@ -20,12 +20,12 @@ from rl_zoo3.utils import ALGOS, StoreDict
 
 def train() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp-name", help="Experiment name", default=str("3x4_lr_lin_0.000003_GeometryCheckisOn+antOvelappingOn+JudgeVxGeometryOn+2layerHidden"), type=str)
+    parser.add_argument("--exp-name", help="Experiment name", default=str("4x4_maxGl_earlyChecksOn_le_0.00001_hiddenL_3_clipRange_0.02_minZdistance0.0_+grids"), type=str)
     parser.add_argument("--algo", help="RL Algorithm", default="ppo", type=str, required=False, choices=list(ALGOS.keys()))
-    parser.add_argument("--env", type=str, default="antenna3x4-v1.2", help="environment ID")
+    parser.add_argument("--env", type=str, default="antenna4x4-v1.2", help="environment ID")
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
     parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", 
-                        #default="logs\\ppo\\antenna3x4-v1.2_10\\rl_model_500000_steps.zip", type=str)
+                        #default="logs\\ppo\\antenna4x4-v1.2_6\\rl_model_1000000_steps.zip", type=str)
                         default="", type=str)
     parser.add_argument("-n", "--n-timesteps", help="Overwrite the number of timesteps", default=-1, type=int)
     parser.add_argument("--num-threads", help="Number of threads for PyTorch (-1 to use default)", default=-1, type=int)
