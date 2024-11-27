@@ -1,8 +1,14 @@
-antenna4x4-v2: 
+antenna3x4-v2.0: 
   n_envs: 20                               #5
-  n_timesteps: !!float 10e5
-  policy: 'MlpPolicy'
-  policy_kwargs: "dict(net_arch=[256, 256])"
+  n_timesteps: !!float 2e6
+  policy: 'MultiInputPolicy'
+  learning_starts: 1000
+  learning_rate: !!float 3e-5
+  exploration_fraction: 0.3
+  exploration_final_eps: 0.04
+  policy_kwargs: "dict(net_arch=[256, 256, 256, 256])"
+
+
 
 atari:
   env_wrapper:

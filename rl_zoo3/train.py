@@ -20,33 +20,30 @@ from rl_zoo3.utils import ALGOS, StoreDict
 
 def train() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp-name", help="Experiment name", default=str("newReward()-10Xbw3dBWorst_pi_with_early_check_lr_0.0001"), type=str)
+    parser.add_argument("--exp-name", help="Experiment name", default=str("3x4_maxGratingLdf_dummy"), type=str)
     parser.add_argument("--algo", help="RL Algorithm", default="a2c", type=str, required=False, choices=list(ALGOS.keys()))
-    parser.add_argument("--env", type=str, default="antenna4x4-v1.1", help="environment ID")
+    parser.add_argument("--env", type=str, default="antenna3x4-v1.2", help="environment ID")
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
     parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", 
+                       #default="logs\\ppo\\antenna3x4-v1.2_46\\rl_model_90000_steps.zip", type=str)
                         default="", type=str)
-    #C:\Users\yernkube\Documents\DRLAntennaSearch\logs\\a2c\\antenna4x4-v1.1_18\\rl_model_470000_steps.zip
-    #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\dqn\\antenna4x4-v2_4\\rl_model_500000_steps.zip
-    #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\ppo\\antenna4x4-v1_17\\rl_model_1000000_steps.zip
-    #C:\\Users\\yernkube\\Documents\\DRLAntennaSearch\\logs\\a2c\\antenna4x4-v1_103\\rl_model_1000000_steps.zip
     parser.add_argument("-n", "--n-timesteps", help="Overwrite the number of timesteps", default=-1, type=int)
     parser.add_argument("--num-threads", help="Number of threads for PyTorch (-1 to use default)", default=-1, type=int)
     parser.add_argument("--log-interval", help="Override log interval (default: -1, no change)", default=10, type=int)
     parser.add_argument(
         "--eval-freq",
-        help="Evaluate the agent every n steps (if negative, no evaluation). "
+        help="Evaluate the agent every n steps (if negative, no evaluation)."
         "During hyperparameter optimization n-evaluations is used instead",
         default=10000,
         type=int,
     )
     parser.add_argument(
         "--optimization-log-path",
-        help="Path to save the evaluation log and optimal policy for each hyperparameter tried during optimization. "
+        help="Path to save the evaluation log and optimal policy for each hyperparameter tried during optimization."
         "Disabled if no argument is passed.",
         type=str,
     )
-    parser.add_argument("--eval-episodes", help="Number of episodes to use for evaluation", default=5, type=int)
+    parser.add_argument("--eval-episodes", help="Number of episodes to use for evaluation", default=20, type=int)
     parser.add_argument("--n-eval-envs", help="Number of environments for evaluation", default=1, type=int)
     parser.add_argument("--save-freq", help="Save the model every n steps (if negative, no checkpoint)", default=10000, type=int)
     parser.add_argument(
@@ -54,8 +51,8 @@ def train() -> None:
     )
     parser.add_argument("-f", "--log-folder", help="Log folder", type=str, default="logs")
     parser.add_argument("--seed", help="Random generator seed", type=int, default=123)
-    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="dummy", choices=["dummy", "subproc"])
-    parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="auto", type=str)
+    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="subproc", choices=["dummy", "subproc"])
+    parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="cpu", type=str)
     parser.add_argument(
         "--n-trials",
         help="Number of trials for optimizing hyperparameters. "

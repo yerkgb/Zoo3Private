@@ -50,7 +50,7 @@ import rl_zoo3.import_envs  # noqa: F401
 from rl_zoo3.callbacks import SaveVecNormalizeCallback, TrialEvalCallback
 from rl_zoo3.hyperparams_opt import HYPERPARAMS_SAMPLER
 from rl_zoo3.utils import ALGOS, get_callback_list, get_class_by_name, get_latest_run_id, get_wrapper_class, linear_schedule
-
+from antenna_project.PlotAntennaEvaluationCallback import PlotAntennaPositionsCallback
 
 class ExperimentManager:
     """
@@ -237,7 +237,7 @@ class ExperimentManager:
             kwargs["async_eval"] = AsyncEval(
                 [lambda: self.create_envs(n_envs=1, no_log=True) for _ in range(self.n_envs)], model.policy
             )
-
+        
         try:
             model.learn(self.n_timesteps, **kwargs)
         except KeyboardInterrupt:
@@ -490,6 +490,18 @@ class ExperimentManager:
     def create_callbacks(self):
         if self.show_progress:
             self.callbacks.append(ProgressBarCallback())
+            
+        displayEvaluation = False
+        if displayEvaluation:
+            # Initialize the callback
+            plot_callback = PlotAntennaPositionsCallback(
+            plot_interval=5000,
+            save_path="./antenna_plots/",
+            verbose=1
+            )
+            self.callbacks.append(plot_callback)
+            
+            
 
         if self.save_freq > 0:
             # Account for the number of parallel environments

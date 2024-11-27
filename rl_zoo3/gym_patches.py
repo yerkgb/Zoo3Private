@@ -3,13 +3,13 @@ Patches for gym 0.26+ so RL Zoo3 keeps working as before
 (notably TimeLimit wrapper and Pybullet envs)
 """
 
-#import numpy as np
+import numpy as np
 
 # Deprecation warning with gym 0.26 and numpy 1.24
-#np.bool8 = np.bool_  # type: ignore[attr-defined]
+np.bool8 = np.bool_  # type: ignore[attr-defined]
 
-#import gymnasium  # noqa: E402
-import gymnasium
+import gymnasium  # noqa: E402
+
 
 class PatchedTimeLimit(gymnasium.wrappers.TimeLimit):
     """
@@ -39,5 +39,8 @@ class PatchedTimeLimit(gymnasium.wrappers.TimeLimit):
 
 # Patch Gymnasium TimeLimit
 gymnasium.wrappers.TimeLimit = PatchedTimeLimit  # type: ignore[misc]
-gymnasium.wrappers.time_limit.TimeLimit = PatchedTimeLimit  # type: ignore[misc]
+try:
+    gymnasium.wrappers.time_limit.TimeLimit = PatchedTimeLimit  # type: ignore[misc]
+except AttributeError:
+    gymnasium.wrappers.common.TimeLimit = PatchedTimeLimit  # type: ignore
 gymnasium.envs.registration.TimeLimit = PatchedTimeLimit  # type: ignore[misc,attr-defined]
