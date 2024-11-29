@@ -112,51 +112,6 @@ antenna3x4-v1_1:
                        net_arch=dict(pi=[64, 64], vf=[64, 64])
                        )"
 
-antenna3x4-v1_2:
-  n_envs: 40
-  n_timesteps: !!float 10e5
-  policy: 'MultiInputPolicy'
-  gamma: 0.99
-  normalize_advantage: False
-  #max_grad_norm: 2.0
-  #use_rms_prop: True
-  #gae_lambda: 0.92
-  n_steps: 2
-  learning_rate:  0.00009
-  #ent_coef: 0.04
-  #vf_coef:  0.5
-  policy_kwargs: "dict(
-                       activation_fn=nn.Tanh,
-                        net_arch=dict(pi=[256, 256], vf=[256, 256])
-                      )"
-
-antenna3x3-v1_2:
-  n_envs: 40
-  n_timesteps: !!float 10e5
-  policy: 'MultiInputPolicy'
-  gamma: 0.99
-  normalize_advantage: False
-  #max_grad_norm: 2.0
-  #use_rms_prop: True
-  #gae_lambda: 0.92
-  n_steps: 2
-  learning_rate:  0.00009
-  #ent_coef: 0.04
-  #vf_coef:  0.5
-
-antenna3x3-v1.2_n:
-  n_envs: 50
-  n_timesteps: !!float 6e5
-  policy: 'MultiInputPolicy'
-  gamma: 0.99
-  normalize_advantage: False
-  max_grad_norm: 2.0
-  use_rms_prop: False
-  gae_lambda: 0.95
-  n_steps: 4
-  learning_rate:  0.0001
-  ent_coef: 0.001
-  vf_coef:  0.6
 
 antenna3x4-v1.2:
   n_envs: 40
@@ -164,9 +119,9 @@ antenna3x4-v1.2:
   policy: 'MultiInputPolicy'
   gamma: 0.99
   normalize_advantage: True
-  max_grad_norm: 2.0
+  max_grad_norm: 0.6
   use_rms_prop: False
-  gae_lambda: 0.9
+  gae_lambda: 0.98
   n_steps: 32
   learning_rate:  0.00004090037477153811
   ent_coef: 0.001
