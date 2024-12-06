@@ -113,22 +113,23 @@ antenna3x4-v1_1:
                        )"
 
 
+# Optimised values on 03.12.2024
 antenna3x4-v1.2:
   n_envs: 40
   n_timesteps: !!float 1e6
   policy: 'MultiInputPolicy'
-  gamma: 0.99
-  normalize_advantage: True
-  max_grad_norm: 0.6
+  gamma: 0.95
+  normalize_advantage: False
+  max_grad_norm: 0.8
   use_rms_prop: False
   gae_lambda: 0.98
-  n_steps: 32
-  learning_rate:  0.00004090037477153811
-  ent_coef: 0.001
-  vf_coef:  0.7
+  n_steps: 128
+  learning_rate:  5.5374327021893094e-05
+  ent_coef: 0.00617218540287641
+  vf_coef:  0.30012806242162304
   policy_kwargs: "dict(
                        activation_fn=nn.ReLU,
-                       net_arch=dict(pi=[256, 256, 256], vf=[256, 256, 256])
+                       net_arch=dict(pi=[256, 256], vf=[256, 256])
                        )"
 
 antenna3x4-v2.0:

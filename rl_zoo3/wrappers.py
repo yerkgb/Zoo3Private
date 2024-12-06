@@ -349,8 +349,6 @@ class ObservationNormalizationWrapper(gym.ObservationWrapper):
         normalized_obs = {
             'antenna_positions': (observation['antenna_positions'] - self.mean['antenna_positions']) / (self.std['antenna_positions'] + 1e-8),
             'geometry_properties': (observation['geometry_properties'] - self.mean['geometry_properties']) / (self.std['geometry_properties'] + 1e-8),
-            #'RxGrid': observation['RxGrid'],
-            #'TxGrid': observation['TxGrid']
         }
         
         #antenna_positions = observation['antenna_positions']

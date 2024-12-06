@@ -61,7 +61,7 @@ register(
 register(
     id="antenna3x4-v1.2",
     entry_point=AntennaPlacementEnv,
-    max_episode_steps=25,
+    max_episode_steps=500,
 )
 
 #### antenna3x3-v1.2
@@ -89,7 +89,7 @@ register(
 register(
     id="antenna3x4-v1.2_n",
     entry_point=create_normalized_env("antenna3x4-v1.2"),
-    max_episode_steps=5,
+    max_episode_steps=500
 )
 
 
