@@ -40,6 +40,7 @@ from stable_baselines3.common.vec_env import (
     VecNormalize,
     VecTransposeImage,
     is_vecenv_wrapped,
+    VecCheckNan
 )
 
 # For custom activation fn
@@ -116,8 +117,8 @@ class ExperimentManager:
         self.config = config or str(default_path / f"hyperparams/{self.algo}.yml")
         self.env_kwargs: Dict[str, Any] = env_kwargs or {}
         self.n_timesteps = n_timesteps
-        self.normalize = False
-        self.normalize_kwargs: Dict[str, Any] = {}
+        self.normalize = True
+        self.normalize_kwargs: Dict[str, Any] = {"norm_obs": True, "norm_reward": False, "training" : True, "clip_obs":20 }
         self.env_wrapper: Optional[Callable] = None
         self.frame_stack = None
         self.seed = seed
@@ -651,6 +652,8 @@ class ExperimentManager:
         # Wrap the env into a VecNormalize wrapper if needed
         # and load saved statistics when present
         env = self._maybe_normalize(env, eval_env)
+        #check for 
+        env = VecCheckNan(env)
 
         # Optional Frame-stacking
         if self.frame_stack is not None:
