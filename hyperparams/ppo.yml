@@ -30,46 +30,46 @@ antenna1x4-v1.2:
                        )"
 
 
-### Optimised on 08.12.2024
+### Optimised for experiment 1.6.9
 antenna3x4-v1.2:
-  n_epochs: 10
+  n_epochs: 5
   n_envs: 40
-  n_steps: 4
-  batch_size: 512
-  n_timesteps: !!float 2e6
+  n_steps: 128
+  batch_size: 64
+  n_timesteps: !!float 1e6
   policy: 'MultiInputPolicy'
-  gamma: 0.999
+  gamma: 0.99
   normalize_advantage: True
-  max_grad_norm: 0.6
-  gae_lambda: 1.0
-  learning_rate: 5.593994656425411e-05
-  ent_coef:  1.120522458554608e-06
-  vf_coef:  0.5742784704565278
-  clip_range: 0.1
+  max_grad_norm: 0.8
+  gae_lambda: 0.95
+  learning_rate: 5.159316690430344e-05
+  ent_coef:  1.919156441092428e-05
+  vf_coef:  0.4
+  clip_range: 0.4
   policy_kwargs: "dict(
                        activation_fn=nn.ReLU,
-                      net_arch=dict(pi=[64, 64], vf=[64, 64]),
+                      net_arch=dict(pi=[256, 256, 256], vf=[256, 256, 256]),
                       ortho_init = False
                        )"
 
 antenna3x4-v2.0:
-  n_epochs: 5
-  n_envs: 15
-  n_steps: 128
-  batch_size: 64
+  n_epochs: 10
+  n_envs: 40
+  n_steps: 32
+  batch_size: 256
   n_timesteps: !!float 4e6
   policy: 'MultiInputPolicy'
   gamma: 0.99
   normalize_advantage: True
   max_grad_norm: 0.6
   gae_lambda: 0.98
-  learning_rate: 0.01
-  ent_coef:  0.1
-  vf_coef:  0.4
-  clip_range: 0.4
+  learning_rate: 0.00004090037477153811
+  ent_coef:  2.382421893274678e-06
+  vf_coef:  0.7
+  clip_range: 0.05
   policy_kwargs: "dict(
                        activation_fn=nn.ReLU,
-                       net_arch=dict(pi=[64, 64], vf=[64, 64]),
+                       net_arch=dict(pi=[256, 256, 256], vf=[256, 256, 256]),
                       ortho_init = False
                        )"
 
