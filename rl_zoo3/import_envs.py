@@ -45,53 +45,17 @@ register(
 
 del AntennaPlacementEnv
 try:
-    from env.antennaEnv_V1_2 import AntennaPlacementEnv
+    from env.antennaEnv_V3 import AntennaPlacementEnvSeq
 except ImportError:
     AntennaPlacementEnv = None
     print("Custom Antenna Environment failed to import")
 
-#### antenna4x4-v1.2
+#### antenna3x4-v3
 register(
-    id="antenna4x4-v1.2",
-    entry_point=AntennaPlacementEnv,
+    id="antenna3x4-v3",
+    entry_point=AntennaPlacementEnvSeq,
     max_episode_steps=25,
 )
-
-#### antenna3x4-v1.2
-register(
-    id="antenna3x4-v1.2",
-    entry_point=AntennaPlacementEnv,
-    max_episode_steps=500,
-)
-
-#### antenna3x3-v1.2
-register(
-    id="antenna3x3-v1_2",
-    entry_point=AntennaPlacementEnv,
-    max_episode_steps=5,
-)
-
-
-del AntennaPlacementEnv
-try:
-    from env.antennaEnv_V1_2 import AntennaPlacementEnv
-except ImportError:
-    AntennaPlacementEnv = None
-    print("Custom Antenna Environment failed to import")
-
-
-register(
-    id="antenna3x3-v1.2_n",
-    entry_point=create_normalized_env("antenna3x3-v1_2"),
-    max_episode_steps=1,
-)
-
-register(
-    id="antenna3x4-v1.2_n",
-    entry_point=create_normalized_env("antenna3x4-v1.2"),
-    max_episode_steps=500
-)
-
 
 #### end
     

@@ -20,9 +20,12 @@ from rl_zoo3.utils import ALGOS, StoreDict
 
 def train() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp-name", help="Experiment name", default=str("exp1.6.9_normalisedObs_maxLength_500"), type=str)
+    parser.add_argument("--exp-name", help="Experiment name", default=str("test"), type=str)
     parser.add_argument("--algo", help="RL Algorithm", default="ppo", type=str, required=False, choices=list(ALGOS.keys()))
-    parser.add_argument("--env", type=str, default="antenna3x4-v1.2_n", help="environment ID")
+    parser.add_argument("--env", type=str, default="antenna3x4-v3", help="environment ID")
+    parser.add_argument(
+        "--normalizeVec", help="Normalize among all envs", action="store_true", default=False
+    )
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
     parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", 
                        #default="logs\\ppo\\antenna3x4-v1.2_57\\rl_model_800000_steps.zip", type=str)
@@ -43,14 +46,14 @@ def train() -> None:
         "Disabled if no argument is passed.",
         type=str,
     )
-    parser.add_argument("--eval-episodes", help="Number of episodes to use for evaluation", default=2, type=int)
+    parser.add_argument("--eval-episodes", help="Number of episodes to use for evaluation", default=5, type=int)
     parser.add_argument("--n-eval-envs", help="Number of environments for evaluation", default=1, type=int)
-    parser.add_argument("--save-freq", help="Save the model every n steps (if negative, no checkpoint)", default=10000, type=int)
+    parser.add_argument("--save-freq", help="Save the model every n steps (if negative, no checkpoint)", default=20000, type=int)
     parser.add_argument(
         "--save-replay-buffer", help="Save the replay buffer too (when applicable)", action="store_true", default=False
     )
     parser.add_argument("-f", "--log-folder", help="Log folder", type=str, default="logs")
-    parser.add_argument("--seed", help="Random generator seed", type=int, default=2033919476)
+    parser.add_argument("--seed", help="Random generator seed", type=int, default=123)
     parser.add_argument("--vec-env", help="VecEnv type", type=str, default="subproc", choices=["dummy", "subproc"])
     parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="cpu", type=str)
     parser.add_argument(
