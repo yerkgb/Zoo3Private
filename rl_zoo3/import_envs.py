@@ -47,15 +47,15 @@ register(
 
 del AntennaPlacementEnv
 try:
-    from env.antennaEnv_V1_2 import AntennaPlacementEnv
+    from env.antennaEnv_V3 import AntennaPlacementEnvSeq
 except ImportError:
     AntennaPlacementEnv = None
     print("Custom Antenna Environment failed to import")
 
-#### antenna4x4-v1.2
+#### antenna3x4-v3
 register(
-    id="antenna4x4-v1.2",
-    entry_point=AntennaPlacementEnv,
+    id="antenna3x4-v3",
+    entry_point=AntennaPlacementEnvSeq,
     max_episode_steps=25,
 )
 
