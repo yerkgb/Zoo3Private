@@ -69,6 +69,7 @@ class ExperimentManager:
         env_id: str,
         log_folder: str,
         tensorboard_log: str = "",
+        normalizeVec: bool = False,
         n_timesteps: int = 0,
         eval_freq: int = 10000,
         n_eval_episodes: int = 5,
@@ -117,8 +118,8 @@ class ExperimentManager:
         self.config = config or str(default_path / f"hyperparams/{self.algo}.yml")
         self.env_kwargs: Dict[str, Any] = env_kwargs or {}
         self.n_timesteps = n_timesteps
-        self.normalize = True
-        self.normalize_kwargs: Dict[str, Any] = {"norm_obs": True, "norm_reward": False, "training" : True, "clip_obs":20 }
+        self.normalize = normalizeVec
+        self.normalize_kwargs: Dict[str, Any] = {"norm_obs": False, "norm_reward": False, "training" : True, "clip_obs":10, "norm_obs_keys": ['geometry_properties']  }
         self.env_wrapper: Optional[Callable] = None
         self.frame_stack = None
         self.seed = seed

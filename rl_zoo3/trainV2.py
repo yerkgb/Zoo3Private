@@ -43,7 +43,7 @@ def train() -> None:
         "Disabled if no argument is passed.",
         type=str,
     )
-    parser.add_argument("--eval-episodes", help="Number of episodes to use for evaluation", default=10, type=int)
+    parser.add_argument("--eval-episodes", help="Number of episodes to use for evaluation", default=1, type=int)
     parser.add_argument("--n-eval-envs", help="Number of environments for evaluation", default=1, type=int)
     parser.add_argument("--save-freq", help="Save the model every n steps (if negative, no checkpoint)", default=10000, type=int)
     parser.add_argument(
@@ -51,7 +51,7 @@ def train() -> None:
     )
     parser.add_argument("-f", "--log-folder", help="Log folder", type=str, default="logs")
     parser.add_argument("--seed", help="Random generator seed", type=int, default=2033919476)
-    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="dummy", choices=["dummy", "subproc"])
+    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="subproc", choices=["dummy", "subproc"])
     parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="cuda", type=str)
     parser.add_argument(
         "--n-trials",
