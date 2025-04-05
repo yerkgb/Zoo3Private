@@ -1,6 +1,5 @@
-
 antenna2x2-v1.2:
-  n_envs: 40
+  n_envs: 5
   n_steps: 128
   batch_size: 320
   n_timesteps: !!float 1e6
@@ -19,7 +18,7 @@ antenna2x2-v1.2:
                        )"
 
 
-antenna3x3-v1.2:
+antenna-v1.2:
   n_envs: 40
   n_epochs: 5
   n_steps: 128

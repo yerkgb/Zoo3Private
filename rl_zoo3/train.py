@@ -22,7 +22,7 @@ def train() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp-name", help="Experiment name", default=str("case5x5_Experiment3_InformedReset"), type=str)
     parser.add_argument("--algo", help="RL Algorithm", default="ppo", type=str, required=False, choices=list(ALGOS.keys()))
-    parser.add_argument("--env", type=str, default="antenna3x4-v1.2", help="environment ID")
+    parser.add_argument("--env", type=str, default="antenna-v1.2", help="environment ID")
     parser.add_argument("--normalizeVec", help="ObsNormaliztion accross paralell envs", action="store_true", default=False)
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
     parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", 
@@ -53,7 +53,7 @@ def train() -> None:
     parser.add_argument("-f", "--log-folder", help="Log folder", type=str, default="logs")
     parser.add_argument("--seed", help="Random generator seed", type=int, default=-1)
     parser.add_argument("--vec-env", help="VecEnv type", type=str, default="subproc", choices=["dummy", "subproc"])
-    parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="cpu", type=str)
+    parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="cuda", type=str)
     parser.add_argument(
         "--n-trials",
         help="Number of trials for optimizing hyperparameters. "
