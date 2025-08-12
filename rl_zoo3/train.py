@@ -20,9 +20,9 @@ from rl_zoo3.utils import ALGOS, StoreDict
 
 def train() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp-name", help="Experiment name", default=str("case5x5_Experiment3_InformedReset"), type=str)
-    parser.add_argument("--algo", help="RL Algorithm", default="ppo", type=str, required=False, choices=list(ALGOS.keys()))
-    parser.add_argument("--env", type=str, default="antenna-v1.2", help="environment ID")
+    parser.add_argument("--exp-name", help="Experiment name", default=str("development2_FirstTry"), type=str)
+    parser.add_argument("--algo", help="RL Algorithm", default="maskable_ppo", type=str, required=False, choices=list(ALGOS.keys()))
+    parser.add_argument("--env", type=str, default="antenna3x4-v2.0", help="environment ID")
     parser.add_argument("--normalizeVec", help="ObsNormaliztion accross paralell envs", action="store_true", default=False)
     parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
     parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", 
@@ -35,7 +35,7 @@ def train() -> None:
         "--eval-freq",
         help="Evaluate the agent every n steps (if negative, no evaluation)."
         "During hyperparameter optimization n-evaluations is used instead",
-        default=20000,
+        default=1000,
         type=int,
     )
     parser.add_argument(
@@ -44,16 +44,16 @@ def train() -> None:
         "Disabled if no argument is passed.",
         type=str,
     )
-    parser.add_argument("--eval-episodes", help="Number of episodes to use for evaluation", default=10, type=int)
-    parser.add_argument("--n-eval-envs", help="Number of environments for evaluation", default=3, type=int)
-    parser.add_argument("--save-freq", help="Save the model every n steps (if negative, no checkpoint)", default=20000, type=int)
+    parser.add_argument("--eval-episodes", help="Number of episodes to use for evaluation", default=1, type=int)
+    parser.add_argument("--n-eval-envs", help="Number of environments for evaluation", default=1, type=int)
+    parser.add_argument("--save-freq", help="Save the model every n steps (if negative, no checkpoint)", default=-1, type=int)
     parser.add_argument(
         "--save-replay-buffer", help="Save the replay buffer too (when applicable)", action="store_true", default=False
     )
     parser.add_argument("-f", "--log-folder", help="Log folder", type=str, default="logs")
-    parser.add_argument("--seed", help="Random generator seed", type=int, default=-1)
-    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="subproc", choices=["dummy", "subproc"])
-    parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="cuda", type=str)
+    parser.add_argument("--seed", help="Random generator seed", type=int, default=42)
+    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="dummy", choices=["dummy", "subproc"])
+    parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="cpu", type=str)
     parser.add_argument(
         "--n-trials",
         help="Number of trials for optimizing hyperparameters. "

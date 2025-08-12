@@ -27,6 +27,7 @@ from sb3_contrib.common.vec_env import AsyncEval
 from stable_baselines3 import HerReplayBuffer
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback, EvalCallback, ProgressBarCallback
+from sb3_contrib.common.maskable.callbacks import MaskableEvalCallback
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from stable_baselines3.common.preprocessing import is_image_space, is_image_space_channels_first
@@ -181,7 +182,35 @@ class ExperimentManager:
         self.save_path = os.path.join(
             self.log_path, f"{self.env_name}_{get_latest_run_id(self.log_path, self.env_name) + 1}{uuid_str}"
         )
-        self.params_path = f"{self.save_path}/{self.env_name}"
+        # Fix for Windows: ensure model save path is different from directory path
+        # The model will be saved as save_path/env_name.zip, not save_path/env_name/env_name
+
+    def set_custom_save_path(self, custom_path: str) -> None:
+        """
+        Set a custom save path that the user knows has proper write permissions.
+        This is useful when the default location has permission issues.
+        
+        :param custom_path: Path where the user wants to save models and logs
+        """
+        if not os.path.isabs(custom_path):
+            # Convert relative path to absolute
+            custom_path = os.path.abspath(custom_path)
+        
+        try:
+            # Test if the path is writable
+            os.makedirs(custom_path, exist_ok=True)
+            test_file = os.path.join(custom_path, ".write_test")
+            with open(test_file, 'w') as f:
+                f.write("test")
+            os.remove(test_file)
+            
+            # Update paths
+            self.save_path = custom_path
+            print(f"Custom save path set to: {self.save_path}")
+            
+        except (PermissionError, OSError) as e:
+            print(f"Warning: Custom path {custom_path} is not writable: {e}")
+            print("Keeping original save path")
 
     def setup_experiment(self) -> Optional[Tuple[BaseAlgorithm, Dict[str, Any]]]:
         """
@@ -264,17 +293,60 @@ class ExperimentManager:
         :param model:
         """
         print(f"Saving to {self.save_path}")
-        model.save(f"{self.save_path}/{self.env_name}")
+        
+        # Ensure save directory exists with proper permissions
+        try:
+            os.makedirs(self.save_path, exist_ok=True)
+            # Test write permissions by creating a temporary file
+            test_file = os.path.join(self.save_path, ".write_test")
+            with open(test_file, 'w') as f:
+                f.write("test")
+            os.remove(test_file)
+        except (PermissionError, OSError) as e:
+            print(f"Warning: Permission error creating directory {self.save_path}: {e}")
+            # Try alternative locations
+            alternative_paths = [
+                os.path.join(os.getcwd(), "fallback_saves"),
+                os.path.join(os.path.expanduser("~"), "rl_saves"),
+                "/tmp/rl_saves" if os.name != 'nt' else os.path.join(os.environ.get('TEMP', 'C:\\temp'), 'rl_saves')
+            ]
+            
+            for alt_path in alternative_paths:
+                try:
+                    os.makedirs(alt_path, exist_ok=True)
+                    test_file = os.path.join(alt_path, ".write_test")
+                    with open(test_file, 'w') as f:
+                        f.write("test")
+                    os.remove(test_file)
+                    self.save_path = alt_path
+                    print(f"Using alternative save path: {self.save_path}")
+                    break
+                except (PermissionError, OSError):
+                    continue
+            else:
+                raise RuntimeError(f"Could not create any writable directory for saving. Tried: {alternative_paths}")
+        
+        try:
+            model.save(f"{self.save_path}/{self.env_name}")
+        except (PermissionError, OSError) as e:
+            print(f"Error saving model: {e}")
+            raise
 
         if hasattr(model, "save_replay_buffer") and self.save_replay_buffer:
             print("Saving replay buffer")
-            model.save_replay_buffer(os.path.join(self.save_path, "replay_buffer.pkl"))
+            try:
+                model.save_replay_buffer(os.path.join(self.save_path, "replay_buffer.pkl"))
+            except (PermissionError, OSError) as e:
+                print(f"Warning: Could not save replay buffer: {e}")
 
         if self.normalize:
             # Important: save the running average, for testing the agent we need that normalization
-            vec_normalize = model.get_vec_normalize_env()
-            assert vec_normalize is not None
-            vec_normalize.save(os.path.join(self.params_path, "vecnormalize.pkl"))
+            try:
+                vec_normalize = model.get_vec_normalize_env()
+                assert vec_normalize is not None
+                vec_normalize.save(os.path.join(self.save_path, "vecnormalize.pkl"))
+            except (PermissionError, OSError) as e:
+                print(f"Warning: Could not save VecNormalize statistics: {e}")
 
     def _save_config(self, saved_hyperparams: Dict[str, Any]) -> None:
         """
@@ -284,11 +356,11 @@ class ExperimentManager:
         :param saved_hyperparams:
         """
         # Save hyperparams
-        with open(os.path.join(self.params_path, "config.yml"), "w") as f:
+        with open(os.path.join(self.save_path, "config.yml"), "w") as f:
             yaml.dump(saved_hyperparams, f)
 
         # save command line arguments
-        with open(os.path.join(self.params_path, "args.yml"), "w") as f:
+        with open(os.path.join(self.save_path, "args.yml"), "w") as f:
             ordered_args = OrderedDict([(key, vars(self.args)[key]) for key in sorted(vars(self.args).keys())])
             yaml.dump(ordered_args, f)
 
@@ -487,7 +559,25 @@ class ExperimentManager:
         return hyperparams
 
     def create_log_folder(self):
-        os.makedirs(self.params_path, exist_ok=True)
+        """Create log folder with proper error handling and fallback options."""
+        try:
+            os.makedirs(self.save_path, exist_ok=True)
+            # Test write permissions
+            test_file = os.path.join(self.save_path, ".write_test")
+            with open(test_file, 'w') as f:
+                f.write("test")
+            os.remove(test_file)
+        except (PermissionError, OSError) as e:
+            print(f"Warning: Permission error creating log folder {self.save_path}: {e}")
+            # Try to create in alternative location
+            try:
+                fallback_path = os.path.join(os.getcwd(), "fallback_logs", self.env_name)
+                os.makedirs(fallback_path, exist_ok=True)
+                self.save_path = fallback_path
+                print(f"Using fallback log path: {self.save_path}")
+            except (PermissionError, OSError) as e2:
+                print(f"Error: Could not create any log folder: {e2}")
+                raise
 
     def create_callbacks(self):
         if self.show_progress:
@@ -525,16 +615,29 @@ class ExperimentManager:
             if self.verbose > 0:
                 print("Creating test environment")
 
-            save_vec_normalize = SaveVecNormalizeCallback(save_freq=1, save_path=self.params_path)
-            eval_callback = EvalCallback(
-                self.create_envs(self.n_eval_envs, eval_env=True),
-                callback_on_new_best=save_vec_normalize,
-                best_model_save_path=self.save_path,
-                n_eval_episodes=self.n_eval_episodes,
-                log_path=self.save_path,
-                eval_freq=self.eval_freq,
-                deterministic=self.deterministic_eval,
-            )
+            save_vec_normalize = SaveVecNormalizeCallback(save_freq=1, save_path=self.save_path)
+            
+            # Use MaskableEvalCallback for maskable_ppo algorithm
+            if self.algo == "maskable_ppo":
+                eval_callback = MaskableEvalCallback(
+                    self.create_envs(self.n_eval_envs, eval_env=True),
+                    callback_on_new_best=save_vec_normalize,
+                    best_model_save_path=self.save_path,
+                    n_eval_episodes=self.n_eval_episodes,
+                    log_path=self.save_path,
+                    eval_freq=self.eval_freq,
+                    deterministic=self.deterministic_eval,
+                )
+            else:
+                eval_callback = EvalCallback(
+                    self.create_envs(self.n_eval_envs, eval_env=True),
+                    callback_on_new_best=save_vec_normalize,
+                    best_model_save_path=self.save_path,
+                    n_eval_episodes=self.n_eval_episodes,
+                    log_path=self.save_path,
+                    eval_freq=self.eval_freq,
+                    deterministic=self.deterministic_eval,
+                )
 
             self.callbacks.append(eval_callback)
 
@@ -629,7 +732,21 @@ class ExperimentManager:
         # when the registry was modified with `--gym-packages`
         # See https://github.com/HumanCompatibleAI/imitation/pull/160
         def make_env(**kwargs) -> gym.Env:
-            return spec.make(**kwargs)
+            env = spec.make(**kwargs)
+            
+            # Automatically wrap with ActionMasker for MaskablePPO
+            if self.algo == "maskable_ppo":
+                from rl_zoo3.utils import get_maskable_wrapper
+                from stable_baselines3.common.monitor import Monitor
+                
+                # Wrap with Monitor first for proper evaluation
+                env = Monitor(env)
+                
+                # Then wrap with ActionMasker
+                maskable_wrapper = get_maskable_wrapper()
+                env = maskable_wrapper(env)
+            
+            return env
 
         env_kwargs = self.eval_env_kwargs if eval_env else self.env_kwargs
 

@@ -1,0 +1,41 @@
+antenna3x4-v2.0:
+  n_epochs: 10
+  n_envs: 5 
+  n_steps: 2048
+  batch_size: 64
+  n_timesteps: !!float 1e6
+  policy: 'MultiInputPolicy'
+  gamma: 0.99
+  normalize_advantage: True
+  max_grad_norm: 0.5
+  gae_lambda: 0.95
+  learning_rate: 0.0003
+  ent_coef: 0.001
+  vf_coef: 0.5
+  clip_range: 0.5
+  policy_kwargs: "dict(
+                           activation_fn=nn.ReLU,
+                           net_arch=dict(pi=[128, 128], vf=[128, 128]),
+                          ortho_init=False
+                           )"
+
+# Default configuration for other environments
+default:
+  n_epochs: 10
+  n_envs: 1
+  n_steps: 2048
+  batch_size: 64
+  n_timesteps: !!float 1e6
+  policy: 'MlpPolicy'
+  gamma: 0.99
+  normalize_advantage: True
+  max_grad_norm: 0.5
+  gae_lambda: 0.95
+  learning_rate: 0.0003
+  ent_coef: 0.0
+  vf_coef: 0.5
+  clip_range: 0.2
+  policy_kwargs: "dict(
+                       activation_fn=nn.ReLU,
+                       net_arch=dict(pi=[64, 64], vf=[64, 64])
+                       )"

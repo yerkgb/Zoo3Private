@@ -20,6 +20,11 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike  # noqa: F401
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecEnv, VecFrameStack, VecNormalize
 
+from sb3_contrib import MaskablePPO
+from sb3_contrib.common.wrappers import ActionMasker
+from stable_baselines3.common.callbacks import CheckpointCallback
+
+
 # For custom activation fn
 from torch import nn as nn
 
@@ -36,6 +41,7 @@ ALGOS: Dict[str, Type[BaseAlgorithm]] = {
     "tqc": TQC,
     "trpo": TRPO,
     "ppo_lstm": RecurrentPPO,
+    "maskable_ppo": MaskablePPO,
 }
 
 
@@ -115,6 +121,43 @@ def get_wrapper_class(hyperparams: Dict[str, Any], key: str = "env_wrapper") -> 
         return wrap_env
     else:
         return None
+
+
+def get_action_mask(env):
+    """
+    Picklable function to get action masks from environment.
+    This function can be safely passed to subprocesses.
+    """
+    return env.unwrapped.action_masks()
+
+def get_maskable_wrapper() -> Callable[[gym.Env], gym.Env]:
+    """
+    Get a wrapper function that automatically wraps environments with ActionMasker
+    for MaskablePPO when the environment has action_mask in its observation space.
+    
+    :return: a callable to wrap the environment with ActionMasker
+    """
+    def wrap_env(env: gym.Env) -> gym.Env:
+        """
+        Wrap environment with ActionMasker if it has action_mask in observation space.
+        
+        :param env: the environment to wrap
+        :return: the wrapped environment
+        """
+        # Check if the environment has action_mask in its observation space
+        if hasattr(env, 'observation_space') and isinstance(env.observation_space, spaces.Dict):
+            if 'action_mask' in env.observation_space.spaces:
+                # Use a function that gets action masks without triggering deprecation warnings
+                def get_action_mask_safe(env):
+                    # Try to get action masks directly from the environment
+                    if hasattr(env, 'action_masks'):
+                        return env.action_masks()
+                    # Fallback to unwrapped if needed
+                    return env.unwrapped.action_masks()
+                return ActionMasker(env, get_action_mask_safe)
+        return env
+    
+    return wrap_env
 
 
 def get_class_by_name(name: str) -> Type:

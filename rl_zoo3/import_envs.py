@@ -23,6 +23,9 @@ from stable_baselines3.common.vec_env import VecNormalize
 
 import numpy as np
 
+import sys
+sys.path.append("C:/temp/AntennSearchDRL")
+
 
 def create_normalized_env(env_id: str) -> Callable[[Optional[str]], gym.Env]:
     def make_env(render_mode: Optional[str] = None) -> gym.Env:
@@ -39,19 +42,17 @@ def create_normalized_env(env_id: str) -> Callable[[Optional[str]], gym.Env]:
 
 
 try:
-    from env.antennaEnv_V1_2 import AntennaPlacementEnv
+    from antenna_project.env.antennaEnv_V2 import AntennaPlacementEnv
 except ImportError:
     AntennaPlacementEnv = None
     print("Custom Antenna Environment failed to import")
 
-#### antenna3x4-v1.2
+#### antenna3x4-v2.0
 register(
-    id="antenna-v1.2",
+    id="antenna3x4-v2.0",
     entry_point=AntennaPlacementEnv,
     max_episode_steps=25,
 )
-
-
 
 #### end
     
