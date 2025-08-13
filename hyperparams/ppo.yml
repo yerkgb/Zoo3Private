@@ -18,6 +18,27 @@ antenna2x2-v1.2:
                        )"
 
 
+antenna3x4-v2.0:
+  n_epochs: 10
+  n_envs: 1
+  n_steps: 128
+  batch_size: 128
+  n_timesteps: !!float 1e6
+  policy: 'MultiInputPolicy'
+  gamma: 0.99
+  normalize_advantage: True
+  max_grad_norm: 0.6
+  gae_lambda: 0.98
+  learning_rate: 0.001
+  ent_coef:  0.001
+  vf_coef:  0.5
+  clip_range: 0.5
+  policy_kwargs: "dict(
+                       activation_fn=nn.ReLU,
+                       net_arch=dict(pi=[64, 64], vf=[64, 64]),
+                      ortho_init = False
+                       )"
+
 antenna-v1.2:
   n_envs: 40
   n_epochs: 5
@@ -192,26 +213,7 @@ antenna3x4-v1.2.4:
                        )"
 
 
-antenna3x4-v2.0:
-  n_epochs: 10
-  n_envs: 40
-  n_steps: 32
-  batch_size: 256
-  n_timesteps: !!float 4e6
-  policy: 'MultiInputPolicy'
-  gamma: 0.99
-  normalize_advantage: True
-  max_grad_norm: 0.6
-  gae_lambda: 0.98
-  learning_rate: 0.001
-  ent_coef:  0.0
-  vf_coef:  0.4
-  clip_range: 0.4
-  policy_kwargs: "dict(
-                       activation_fn=nn.ReLU,
-                       net_arch=dict(pi=[64, 64], vf=[64, 64]),
-                      ortho_init = False
-                       )"
+
 
 
 

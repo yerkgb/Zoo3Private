@@ -1,9 +1,9 @@
 antenna3x4-v2.0:
   n_epochs: 10
   n_envs: 5 
-  n_steps: 2048
+  n_steps: 128
   batch_size: 64
-  n_timesteps: !!float 1e6
+  n_timesteps: !!float 3e6
   policy: 'MultiInputPolicy'
   gamma: 0.99
   normalize_advantage: True
@@ -12,7 +12,7 @@ antenna3x4-v2.0:
   learning_rate: 0.0003
   ent_coef: 0.001
   vf_coef: 0.5
-  clip_range: 0.5
+  clip_range: 0.4
   policy_kwargs: "dict(
                            activation_fn=nn.ReLU,
                            net_arch=dict(pi=[128, 128], vf=[128, 128]),
