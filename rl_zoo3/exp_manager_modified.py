@@ -1,0 +1,368 @@
+import argparse
+import difflib
+import importlib
+import os
+import time
+import uuid
+
+import gymnasium as gym
+import numpy as np
+import stable_baselines3 as sb3
+import torch as th
+from stable_baselines3.common.utils import set_random_seed
+
+# Register custom envs
+import rl_zoo3.import_envs  # noqa: F401
+from rl_zoo3.exp_manager import ExperimentManager
+from rl_zoo3.utils import ALGOS, StoreDict
+
+# Import our custom wrapper
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'antenna_project', 'env'))
+from custom_action_mask_wrapper import CustomActionMaskWrapper
+
+def train() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exp-name", help="Experiment name", default=str("development2"), type=str)
+    parser.add_argument("--algo", help="RL Algorithm", default="maskable_ppo", type=str, required=False, choices=list(ALGOS.keys()))
+    parser.add_argument("--env", type=str, default="antenna3x4-v2.0", help="environment ID")
+    parser.add_argument("--normalizeVec", help="ObsNormaliztion accross paralell envs", action="store_true", default=False)
+    parser.add_argument("-tb", "--tensorboard-log", help="Tensorboard log dir", default="TensorBoardLog", type=str)
+    parser.add_argument("-i", "--trained-agent", help="Path to a pretrained agent to continue training", 
+                      #default="logs\\ppo\\antenna3x4-v1.2_178\\rl_model_600000_steps.zip", type=str)
+                        default="", type=str)
+    parser.add_argument("-n", "--n-timesteps", help="Overwrite the number of timesteps", default=-1, type=int)
+    parser.add_argument("--num-threads", help="Number of threads for PyTorch (-1 to use default)", default=-1, type=int)
+    parser.add_argument("--log-interval", help="Override log interval (default: -1, no change)", default=10, type=int)
+    parser.add_argument(
+        "--eval-freq",
+        help="Evaluate the agent every n steps (if negative, no evaluation)."
+        "During hyperparameter optimization n-evaluations is used instead",
+        default=1000,
+        type=int,
+    )
+    parser.add_argument(
+        "--optimization-log-path",
+        help="Path to save the evaluation log and optimal policy for each hyperparameter tried during optimization."
+        "Disabled if no argument is passed.",
+        type=str,
+    )
+    parser.add_argument("--eval-episodes", help="Number of episodes to use for evaluation", default=1, type=int)
+    parser.add_argument("--n-eval-envs", help="Number of environments for evaluation", default=1, type=int)
+    parser.add_argument("--save-freq", help="Save the model every n steps (if negative, no checkpoint)", default=-1, type=int)
+    parser.add_argument(
+        "--save-replay-buffer", help="Save the replay buffer too (when applicable)", action="store_true", default=False
+    )
+    parser.add_argument("-f", "--log-folder", help="Log folder", type=str, default="logs")
+    parser.add_argument("--seed", help="Random generator seed", type=int, default=42)
+    parser.add_argument("--vec-env", help="VecEnv type", type=str, default="dummy", choices=["dummy", "subproc"])
+    parser.add_argument("--device", help="PyTorch device to be use (ex: cpu, cuda...)", default="cpu", type=str)
+    parser.add_argument(
+        "--n-trials",
+        help="Number of trials for optimizing hyperparameters. "
+        "This applies to each optimization runner, not the entire optimization process.",
+        type=int,
+        default=1,
+    )
+    parser.add_argument(
+        "--max-total-trials",
+        help="Number of (potentially pruned) trials for optimizing hyperparameters. "
+        "This applies to the entire optimization process and takes precedence over --n-trials if set.",
+        type=int,
+        default=1,
+    )
+    parser.add_argument(
+        "-optimize", "--optimize-hyperparameters", action="store_true", default=False, help="Run hyperparameters search"
+    )
+    parser.add_argument(
+        "--no-optim-plots", action="store_true", default=False, help="Disable hyperparameter optimization plots"
+    )
+    parser.add_argument("--n-jobs", help="Number of parallel jobs when optimizing hyperparameters", type=int, default=-1)
+    parser.add_argument(
+        "--sampler",
+        help="Sampler to use when optimizing hyperparameters",
+        type=str,
+        default="tpe",
+        choices=["random", "tpe", "skopt"],
+    )
+    parser.add_argument(
+        "--pruner",
+        help="Pruner to use when optimizing hyperparameters",
+        type=str,
+        default="median",
+        choices=["halving", "median", "none"],
+    )
+    parser.add_argument("--n-startup-trials", help="Number of trials before using optuna sampler", type=int, default=10)
+    parser.add_argument(
+        "--n-evaluations",
+        help="Training policies are evaluated every n-timesteps // n-evaluations steps when doing hyperparameter optimization."
+        "Default is 1 evaluation per 100k timesteps.",
+        type=int,
+        default=50000,
+    )
+    parser.add_argument(
+        "--storage", help="Database storage path if distributed optimization should be used", type=str, default=None
+    )
+    parser.add_argument("--study-name", help="Study name for distributed optimization", type=str, default=None)
+    parser.add_argument("--verbose", help="Verbose mode (0: no output, 1: INFO)", default=1, type=int)
+    parser.add_argument(
+        "--gym-packages",
+        type=str,
+        nargs="+",
+        default=[],
+        help="Additional external Gym environment package modules to import",
+    )
+    parser.add_argument(
+        "--env-kwargs", type=str, nargs="+", action=StoreDict, help="Optional keyword argument to pass to the env constructor"
+    )
+    parser.add_argument(
+        "--eval-env-kwargs",
+        type=str,
+        nargs="+", action=StoreDict,
+        help="Optional keyword argument to pass to the env constructor for evaluation",
+    )
+    parser.add_argument(
+        "-params",
+        "--hyperparams",
+        type=str,
+        nargs="+",
+        action=StoreDict,
+        help="Overwrite hyperparameter (e.g. learning_rate:0.01 train_freq:10)",
+    )
+    parser.add_argument(
+        "-conf",
+        "--conf-file",
+        type=str,
+        default=None,
+        help="Custom yaml file or python package from which the hyperparameters will be loaded."
+        "We expect that python packages contain a dictionary called 'hyperparams' which contains a key for each environment.",
+    )
+    parser.add_argument("-uuid", "--uuid", action="store_true", default=False, help="Ensure that the run has a unique ID")
+    parser.add_argument(
+        "--track",
+        action="store_true",
+        default=False,
+        help="if toggled, this experiment will be tracked with Weights and Biases",
+    )
+    parser.add_argument("--wandb-project-name", type=str, default="sb3", help="the wandb's project name")
+    parser.add_argument("--wandb-entity", type=str, default=None, help="the entity (team) of wandb's project")
+    parser.add_argument(
+        "-P",
+        "--progress",
+        action="store_true",
+        default=True,
+        help="if toggled, display a progress bar using tqdm and rich",
+    )
+    parser.add_argument(
+        "-tags", "--wandb-tags", type=str, default=["seed-123"], nargs="+", help="Tags for wandb run, e.g.: -tags optimized pr-123"
+    )
+
+    args = parser.parse_args()
+
+    # Going through custom gym packages to let them register in the global registry
+    for env_module in args.gym_packages:
+        importlib.import_module(env_module)
+
+    env_id = args.env
+    registered_envs = set(gym.envs.registry.keys())
+
+    # If the environment is not found, suggest the closest match
+    if env_id not in registered_envs:
+        try:
+            closest_match = difflib.get_close_matches(env_id, registered_envs, n=1)[0]
+        except IndexError:
+            closest_match = "'no close match found...'"
+        raise ValueError(f"{env_id} not found in gym registry, you maybe meant {closest_match}?")
+
+    # Unique id to ensure there is no race condition for the folder creation
+    uuid_str = f"_{uuid.uuid4()}" if args.uuid else ""
+    if args.seed < 0:
+        # Seed but with a random one
+        args.seed = np.random.randint(2**32 - 1, dtype="int64").item()  # type: ignore[attr-defined]
+
+    set_random_seed(args.seed)
+
+    # Setting num threads to 1 makes things run faster on cpu
+    if args.num_threads > 0:
+        if args.verbose > 1:
+            print(f"Setting torch.num_threads to {args.num_threads}")
+        th.set_num_threads(args.num_threads)
+
+    if args.trained_agent != "":
+        assert args.trained_agent.endswith(".zip") and os.path.isfile(
+            args.trained_agent
+        ), "The trained_agent must be a valid path to a .zip file"
+
+    print("=" * 10, env_id, "=" * 10)
+    print(f"Seed: {args.seed}")
+
+    if args.track:
+        try:
+            import wandb
+        except ImportError as e:
+            raise ImportError(
+                "if you want to use Weights & Biases to track experiment, please install W&B via `pip install wandb`"
+            ) from e
+
+        run_name = f"{args.env}__{args.algo}__{args.seed}__{int(time.time())}"
+        tags = [*args.wandb_tags, f"v{sb3.__version__}"]
+        run = wandb.init(
+            name=run_name,
+            project=args.wandb_project_name,
+            entity=args.wandb_entity,
+            tags=tags,
+            config=vars(args),
+            sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
+            monitor_gym=True,  # auto-upload the videos of agents playing the game
+            save_code=True,  # optional
+        )
+        args.tensorboard_log = f"runs/{run_name}"
+
+    # Create a custom experiment manager that uses our wrapper
+    exp_manager = CustomExperimentManager(
+        args,
+        args.exp_name,
+        args.algo,
+        env_id,
+        args.log_folder,
+        args.tensorboard_log,
+        args.normalizeVec,
+        args.n_timesteps,
+        args.eval_freq,
+        args.eval_episodes,
+        args.save_freq,
+        args.hyperparams,
+        args.env_kwargs,
+        args.eval_env_kwargs,
+        args.trained_agent,
+        args.optimize_hyperparameters,
+        args.storage,
+        args.study_name,
+        args.n_trials,
+        args.max_total_trials,
+        args.n_jobs,
+        args.sampler,
+        args.pruner,
+        args.optimization_log_path,
+        n_startup_trials=args.n_startup_trials,
+        n_evaluations=args.n_evaluations,
+        uuid_str=uuid_str,
+        seed=args.seed,
+        log_interval=args.log_interval,
+        save_replay_buffer=args.save_replay_buffer,
+        verbose=args.verbose,
+        vec_env_type=args.vec_env,
+        n_eval_envs=args.n_eval_envs,
+        no_optim_plots=args.no_optim_plots,
+        device=args.device,
+        config=args.conf_file,
+        show_progress=args.progress,
+    )
+
+    # Prepare experiment and launch hyperparameter optimization if needed
+    results = exp_manager.setup_experiment()
+    if results is not None:
+        model, saved_hyperparams = results
+        if args.track:
+            # we need to save the loaded hyperparameters
+            args.saved_hyperparams = saved_hyperparams
+            assert run is not None  # make mypy happy
+            run.config.setdefaults(vars(args))
+
+        # Normal training
+        if model is not None:
+            exp_manager.learn(model)
+            exp_manager.save_trained_model(model)
+    else:
+        exp_manager.hyperparameters_optimization()
+
+
+class CustomExperimentManager(ExperimentManager):
+    """Custom experiment manager that uses our custom action mask wrapper."""
+    
+    def _create_envs(self, n_envs: int = 1, eval_env: bool = False, no_log: bool = False) -> "VecEnv":
+        """Create environments with our custom wrapper instead of ActionMasker."""
+        from stable_baselines3.common.vec_env import make_vec_env, VecCheckNan, VecFrameStack, VecTransposeImage
+        from stable_baselines3.common.vec_env import is_vecenv_wrapped, is_image_space, is_image_space_channels_first
+        from gymnasium import spaces
+        
+        log_dir = None if no_log else self.log_dir
+        
+        # Get the environment spec
+        spec = gym.spec(self.env_name.gym_id)
+
+        # Define make_env here, so it works with subprocesses
+        # when the registry was modified with `--gym-packages`
+        # See https://github.com/HumanCompatibleAI/imitation/pull/160
+        def make_env(**kwargs) -> gym.Env:
+            env = spec.make(**kwargs)
+            
+            # Use our custom wrapper instead of ActionMasker for MaskablePPO
+            if self.algo == "maskable_ppo":
+                from stable_baselines3.common.monitor import Monitor
+                
+                # Wrap with Monitor first for proper evaluation
+                env = Monitor(env)
+                
+                # Use our custom wrapper instead of ActionMasker
+                env = CustomActionMaskWrapper(env)
+            
+            return env
+
+        env_kwargs = self.eval_env_kwargs if eval_env else self.env_kwargs
+
+        # On most env, SubprocVecEnv does not help and is quite memory hungry,
+        # therefore, we use DummyVecEnv by default
+        env = make_vec_env(
+            make_env,
+            n_envs=n_envs,
+            seed=self.seed,
+            env_kwargs=env_kwargs,
+            monitor_dir=log_dir,
+            wrapper_class=self.env_wrapper,
+            vec_env_cls=self.vec_env_class,  # type: ignore[arg-type]
+            vec_env_kwargs=self.vec_env_kwargs,
+            monitor_kwargs=self.monitor_kwargs,
+        )
+
+        if self.vec_env_wrapper is not None:
+            env = self.vec_env_wrapper(env)
+
+        # Wrap the env into a VecNormalize wrapper if needed
+        # and load saved statistics when present
+        env = self._maybe_normalize(env, eval_env)
+        #check for 
+        env = VecCheckNan(env)
+
+        # Optional Frame-stacking
+        if self.frame_stack is not None:
+            n_stack = self.frame_stack
+            env = VecFrameStack(env, n_stack)
+            if self.verbose > 0:
+                print(f"Stacking {n_stack} frames")
+
+        if not is_vecenv_wrapped(env, VecTransposeImage):
+            wrap_with_vectranspose = False
+            if isinstance(env.observation_space, spaces.Dict):
+                # If even one of the keys is an image-space in need of transpose, apply transpose
+                # If the image spaces are not consistent (for instance, one is channel first,
+                # the other channel last); VecTransposeImage will throw an error
+                for space in env.observation_space.spaces.values():
+                    wrap_with_vectranspose = wrap_with_vectranspose or (
+                        is_image_space(space) and not is_image_space_channels_first(space)  # type: ignore[arg-type]
+                    )
+            else:
+                wrap_with_vectranspose = is_image_space(env.observation_space) and not is_image_space_channels_first(
+                    env.observation_space  # type: ignore[arg-type]
+                )
+
+            if wrap_with_vectranspose:
+                if self.verbose >= 1:
+                    print("Wrapping the env in a VecTransposeImage.")
+                env = VecTransposeImage(env)
+
+        return env
+
+
+if __name__ == "__main__":
+    train()
