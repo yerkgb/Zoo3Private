@@ -20,7 +20,7 @@ from rl_zoo3.utils import ALGOS, StoreDict
 
 def train() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp-name", help="Experiment name", default=str("development2_com_optimized"), type=str)
+    parser.add_argument("--exp-name", help="Experiment name", default=str("development2_trialNum_72"), type=str)
     parser.add_argument("--algo", help="RL Algorithm", default="maskable_ppo", type=str, required=False, choices=list(ALGOS.keys()))
     parser.add_argument("--env", type=str, default="antenna3x4-v2.0", help="environment ID")
     parser.add_argument("--normalizeVec", help="ObsNormaliztion accross paralell envs", action="store_true", default=False)
@@ -35,7 +35,7 @@ def train() -> None:
         "--eval-freq",
         help="Evaluate the agent every n steps (if negative, no evaluation)."
         "During hyperparameter optimization n-evaluations is used instead",
-        default=1000,
+        default=10000,
         type=int,
     )
     parser.add_argument(
